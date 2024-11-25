@@ -216,4 +216,4 @@ Documentation:
 
 Remember to maintain professional communication and focus on delivering high-quality, maintainable code that meets all specified requirements.
 
-[PROMPT INPUT]:
+Please acknowledge that you understand these instructions and are ready to receive instructions.

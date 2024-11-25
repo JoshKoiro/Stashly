@@ -274,4 +274,4 @@ Categorize issues using these priorities:
 
 Remember to maintain a balance between thorough quality control and practical implementation considerations. Focus on identifying significant issues that could impact system stability, security, or maintainability while providing constructive feedback that helps improve the overall code quality.
 
-[PROMPT INPUT]:
+Please acknowledge that you understand these instructions and are ready to receive instructions.

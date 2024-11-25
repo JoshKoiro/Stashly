@@ -1,4 +1,7 @@
+<img src="./img/Banner.png">
+
 # Stashly
+
 A modern, containerized inventory management system designed to track physical items stored in boxes or containers using QR codes.
 
 ## System Requirements

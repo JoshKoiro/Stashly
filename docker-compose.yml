@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  pocketbase:
+    build: 
+      context: ./pocketbase
+      dockerfile: Dockerfile
+    volumes:
+      - pb_data:/pb/pb_data
+      - pb_backups:/pb/backups
+    ports:
+      - "8090:8090"
+    networks:
+      - stashly-network
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - TZ=UTC
+
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+    depends_on:
+      - pocketbase
+    ports:
+      - "3000:3000"
+    networks:
+      - stashly-network
+    environment:
+      - NODE_ENV=development
+      - POCKETBASE_URL=http://pocketbase:8090
+      - REACT_APP_API_URL=http://localhost:3000/api
+      - REACT_APP_QR_SERVICE_URL=http://localhost:3001
+    restart: unless-stopped
+    volumes:
+      - ./webapp:/app
+      - /app/node_modules
+
+  qr-service:
+    build:
+      context: ./qr-service
+      dockerfile: Dockerfile
+    depends_on:
+      - webapp
+    ports:
+      - "3001:3001"
+    networks:
+      - stashly-network
+    environment:
+      - NODE_ENV=development
+      - QR_SERVICE_PORT=3001
+      - PDF_STORAGE_PATH=/tmp/qr-pdfs
+    volumes:
+      - ./qr-service:/app
+      - /app/node_modules
+      - qr_pdfs:/tmp/qr-pdfs
+    restart: unless-stopped
+
+networks:
+  stashly-network:
+    driver: bridge
+
+volumes:
+  pb_data:
+  pb_backups:
+  qr_pdfs:

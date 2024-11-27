@@ -1,0 +1,40 @@
+{
+  "name": "stashly-qr-service",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "express": "^4.18.2",
+    "qrcode": "^1.5.1",
+    "pdfkit": "^0.13.0",
+    "cors": "^2.8.5",
+    "helmet": "^6.0.1",
+    "winston": "^3.8.2",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/qrcode": "^1.5.0",
+    "@types/pdfkit": "^0.12.8",
+    "@types/cors": "^2.8.13",
+    "@types/morgan": "^1.9.4",
+    "@types/node": "^18.11.18",
+    "@types/jest": "^29.4.0",
+    "typescript": "^4.9.5",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "jest": "^29.4.1",
+    "ts-jest": "^29.0.5",
+    "supertest": "^6.3.3",
+    "@types/supertest": "^2.0.12"
+  },
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix"
+  }
+}

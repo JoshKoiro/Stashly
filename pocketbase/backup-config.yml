@@ -1,0 +1,27 @@
+schedule:
+  enabled: true
+  cron: "0 0 * * *"  # Daily at midnight
+  retention:
+    days: 7
+    count: 5
+
+storage:
+  path: /pb/backups
+  format: "backup-%Y%m%d-%H%M%S.zip"
+
+options:
+  compress: true
+  include_files: true
+  include_thumbs: true
+
+notifications:
+  on_success: false
+  on_failure: true
+  email:
+    enabled: false
+    smtp:
+      host: ""
+      port: 587
+      username: ""
+      password: ""
+    recipients: []

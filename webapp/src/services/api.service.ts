@@ -123,8 +123,44 @@ export const getPackages = async (params?: SearchParams): Promise<PaginatedRespo
 
 export const getPackage = async (id: string): Promise<ApiResponse<Package>> => {
   try {
-    const response = await api.get(`/api/collections/packages/records/${id}`);
-    return response.data;
+    // Return mock data for single package
+    const mockPackage = id === '1' 
+      ? { 
+          id: '1', 
+          created: new Date().toISOString(),
+          updated: new Date().toISOString(),
+          display_id: 'PKG-001',
+          location: 'A1',
+          items: [{ name: 'Mock Item 1', quantity: 5, category: 'Electronics' }],
+          images: [],
+          status: 'active' as const,
+          created_by: 'system',
+          last_modified_by: 'system'
+        }
+      : {
+          id: '2', 
+          created: new Date().toISOString(),
+          updated: new Date().toISOString(),
+          display_id: 'PKG-002',
+          location: 'B2',
+          items: [
+            { name: 'Pens', quantity: 20, description: 'Blue ballpoint pens', category: 'Office Supplies' },
+            { name: 'Notebooks', quantity: 5, description: 'Lined spiral notebooks', category: 'Office Supplies' }
+          ],
+          images: [],
+          status: 'active' as const,
+          created_by: 'system',
+          last_modified_by: 'system'
+        };
+    
+    return {
+      data: mockPackage,
+      success: true
+    };
+    
+    // Commented out for now
+    // const response = await api.get(`/api/collections/packages/records/${id}`);
+    // return response.data;
   } catch (error) {
     console.error(`Error fetching package ${id}:`, error);
     throw error;
@@ -133,8 +169,30 @@ export const getPackage = async (id: string): Promise<ApiResponse<Package>> => {
 
 export const createPackage = async (packageData: Partial<Package>): Promise<ApiResponse<Package>> => {
   try {
-    const response = await api.post('/api/collections/packages/records', packageData);
-    return response.data;
+    // Simulate successful creation
+    const mockPackage = {
+      id: `new-${Date.now()}`,
+      created: new Date().toISOString(),
+      updated: new Date().toISOString(),
+      display_id: packageData.display_id || 'PKG-NEW',
+      location: packageData.location || 'Unknown',
+      items: packageData.items || [],
+      images: packageData.images || [],
+      status: packageData.status || 'active',
+      created_by: 'system',
+      last_modified_by: 'system'
+    };
+    
+    console.log('Created mock package:', mockPackage);
+    
+    return {
+      data: mockPackage,
+      success: true
+    };
+    
+    // Commented out for now
+    // const response = await api.post('/api/collections/packages/records', packageData);
+    // return response.data;
   } catch (error) {
     console.error('Error creating package:', error);
     throw error;
@@ -143,8 +201,30 @@ export const createPackage = async (packageData: Partial<Package>): Promise<ApiR
 
 export const updatePackage = async (id: string, packageData: Partial<Package>): Promise<ApiResponse<Package>> => {
   try {
-    const response = await api.patch(`/api/collections/packages/records/${id}`, packageData);
-    return response.data;
+    // Simulate successful update
+    const mockPackage = {
+      id: id,
+      created: new Date(Date.now() - 86400000).toISOString(), // yesterday
+      updated: new Date().toISOString(),
+      display_id: packageData.display_id || 'PKG-UPDATED',
+      location: packageData.location || 'Updated Location',
+      items: packageData.items || [],
+      images: packageData.images || [],
+      status: packageData.status || 'active',
+      created_by: 'system',
+      last_modified_by: 'system'
+    };
+    
+    console.log('Updated mock package:', mockPackage);
+    
+    return {
+      data: mockPackage,
+      success: true
+    };
+    
+    // Commented out for now
+    // const response = await api.patch(`/api/collections/packages/records/${id}`, packageData);
+    // return response.data;
   } catch (error) {
     console.error(`Error updating package ${id}:`, error);
     throw error;
@@ -153,8 +233,17 @@ export const updatePackage = async (id: string, packageData: Partial<Package>): 
 
 export const deletePackage = async (id: string): Promise<ApiResponse<null>> => {
   try {
-    const response = await api.delete(`/api/collections/packages/records/${id}`);
-    return response.data;
+    // Simulate successful deletion
+    console.log(`Deleted mock package with ID: ${id}`);
+    
+    return {
+      data: null,
+      success: true
+    };
+    
+    // Commented out for now
+    // const response = await api.delete(`/api/collections/packages/records/${id}`);
+    // return response.data;
   } catch (error) {
     console.error(`Error deleting package ${id}:`, error);
     throw error;
@@ -163,13 +252,50 @@ export const deletePackage = async (id: string): Promise<ApiResponse<null>> => {
 
 export const searchPackages = async (params: SearchParams): Promise<PaginatedResponse<Package>> => {
   try {
-    const response = await api.get('/api/collections/packages/records', { 
-      params: { 
-        filter: params.query ? `name~"${params.query}"` : undefined,
-        ...params 
-      } 
-    });
-    return response.data;
+    // Return same mock data as getPackages for now
+    console.log('Search params:', params);
+    
+    return {
+      page: 1,
+      perPage: 10,
+      totalItems: 2,
+      totalPages: 1,
+      items: [
+        { 
+          id: '1', 
+          created: new Date().toISOString(),
+          updated: new Date().toISOString(),
+          display_id: 'PKG-001',
+          location: 'A1',
+          items: [{ name: 'Mock Item 1', quantity: 5, category: 'Electronics' }],
+          images: [],
+          status: 'active' as const,
+          created_by: 'system',
+          last_modified_by: 'system'
+        },
+        { 
+          id: '2', 
+          created: new Date().toISOString(),
+          updated: new Date().toISOString(),
+          display_id: 'PKG-002',
+          location: 'B2',
+          items: [{ name: 'Mock Item 2', quantity: 10, category: 'Office' }],
+          images: [],
+          status: 'active' as const,
+          created_by: 'system',
+          last_modified_by: 'system'
+        }
+      ]
+    };
+    
+    // Commented out for now
+    // const response = await api.get('/api/collections/packages/records', { 
+    //   params: { 
+    //     filter: params.query ? `name~"${params.query}"` : undefined,
+    //     ...params 
+    //   } 
+    // });
+    // return response.data;
   } catch (error) {
     console.error('Error searching packages:', error);
     throw error;
@@ -179,8 +305,18 @@ export const searchPackages = async (params: SearchParams): Promise<PaginatedRes
 // Category API calls
 export const getCategories = async (): Promise<ApiResponse<Category[]>> => {
   try {
-    const response = await api.get('/api/collections/categories/records');
-    return response.data;
+    // Return mock categories
+    return {
+      data: [
+        { id: 'cat1', name: 'Electronics', created: new Date().toISOString(), updated: new Date().toISOString(), description: 'Electronic devices and components' },
+        { id: 'cat2', name: 'Office Supplies', created: new Date().toISOString(), updated: new Date().toISOString(), description: 'Supplies used in an office environment' }
+      ],
+      success: true
+    };
+    
+    // Commented out for now
+    // const response = await api.get('/api/collections/categories/records');
+    // return response.data;
   } catch (error) {
     console.error('Error fetching categories:', error);
     throw error;
@@ -189,8 +325,25 @@ export const getCategories = async (): Promise<ApiResponse<Category[]>> => {
 
 export const createCategory = async (categoryData: Partial<Category>): Promise<ApiResponse<Category>> => {
   try {
-    const response = await api.post('/api/collections/categories/records', categoryData);
-    return response.data;
+    // Simulate creating a category
+    const mockCategory = {
+      id: `cat-${Date.now()}`,
+      name: categoryData.name || 'New Category',
+      description: categoryData.description || '',
+      created: new Date().toISOString(),
+      updated: new Date().toISOString()
+    };
+    
+    console.log('Created mock category:', mockCategory);
+    
+    return {
+      data: mockCategory,
+      success: true
+    };
+    
+    // Commented out for now
+    // const response = await api.post('/api/collections/categories/records', categoryData);
+    // return response.data;
   } catch (error) {
     console.error('Error creating category:', error);
     throw error;
@@ -199,8 +352,17 @@ export const createCategory = async (categoryData: Partial<Category>): Promise<A
 
 export const deleteCategory = async (id: string): Promise<ApiResponse<null>> => {
   try {
-    const response = await api.delete(`/api/collections/categories/records/${id}`);
-    return response.data;
+    // Simulate deleting a category
+    console.log(`Deleted mock category with ID: ${id}`);
+    
+    return {
+      data: null,
+      success: true
+    };
+    
+    // Commented out for now
+    // const response = await api.delete(`/api/collections/categories/records/${id}`);
+    // return response.data;
   } catch (error) {
     console.error(`Error deleting category ${id}:`, error);
     throw error;

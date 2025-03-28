@@ -28,7 +28,8 @@ services:
       context: ./webapp
       dockerfile: Dockerfile
     depends_on:
-      - pocketbase
+      pocketbase:
+        condition: service_healthy
     ports:
       - "8081:3000"
     networks:
@@ -55,7 +56,8 @@ services:
       context: ./qr-service
       dockerfile: Dockerfile
     depends_on:
-      - webapp
+      webapp:
+        condition: service_healthy
     ports:
       - "3001:3001"
     networks:

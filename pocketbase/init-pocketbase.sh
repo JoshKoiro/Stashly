@@ -12,11 +12,20 @@ until curl -s http://localhost:8090/api/health > /dev/null; do
 done
 echo "PocketBase is running!"
 
-# Check if initial setup is needed (look for admin collection)
-ADMIN_RESPONSE=$(curl -s http://localhost:8090/api/collections/users/records || echo "")
-if [[ $ADMIN_RESPONSE == *'"404"'* ]] || [[ $ADMIN_RESPONSE == "" ]]; then
-  echo "First time setup: Creating admin user and collections..."
-  
+# Check if admin user exists
+ADMIN_RESPONSE=$(curl -s -X POST http://localhost:8090/api/admins/auth-with-password -d '{
+  "email": "admin@stashly.local",
+  "password": "StashlyAdmin123!"
+}' -H "Content-Type: application/json" || echo '{"code":400}')
+
+ADMIN_EXISTS=false
+if [[ $(echo $ADMIN_RESPONSE | jq -r '.code') -ne 400 ]]; then
+  echo "Admin exists, logging in..."
+  ADMIN_EXISTS=true
+  TOKEN=$(echo $ADMIN_RESPONSE | jq -r '.token')
+  echo "Logged in with token: ${TOKEN:0:10}..."
+else
+  echo "Admin doesn't exist, creating..."
   # Create admin user
   echo "Creating admin user..."
   ADMIN_EMAIL="admin@stashly.local"
@@ -43,6 +52,12 @@ if [[ $ADMIN_RESPONSE == *'"404"'* ]] || [[ $ADMIN_RESPONSE == "" ]]; then
   
   TOKEN=$(echo $AUTH_RESPONSE | jq -r '.token')
   echo "Logged in successfully, got token: ${TOKEN:0:10}..."
+fi
+
+# Check if packages collection exists
+PACKAGES_RESPONSE=$(curl -s http://localhost:8090/api/collections/packages -H "Authorization: Admin ${TOKEN}" || echo '{"code":404}')
+if [[ $(echo $PACKAGES_RESPONSE | jq -r '.code') -eq 404 ]]; then
+  echo "Packages collection doesn't exist, creating collections..."
   
   # Create packages collection
   echo "Creating packages collection..."
@@ -186,9 +201,9 @@ if [[ $ADMIN_RESPONSE == *'"404"'* ]] || [[ $ADMIN_RESPONSE == "" ]]; then
   }' -H "Content-Type: application/json" -H "Authorization: Admin ${TOKEN}"
   
   echo "Sample data added!"
-  echo "Initial setup complete!"
+  echo "Setup complete!"
 else
-  echo "Admin user already exists, skipping initial setup."
+  echo "Packages collection already exists, no need to recreate."
 fi
 
 # Wait for the PocketBase process

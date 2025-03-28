@@ -7,6 +7,11 @@ import CategoryPage from './pages/CategoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 import './App.css';
 
+// Simple health check component
+const HealthCheck: React.FC = () => {
+  return <div style={{ display: 'none' }}>OK</div>;
+};
+
 const App: React.FC = () => {
   return (
     <Router>
@@ -37,6 +42,7 @@ const App: React.FC = () => {
             <Route path="/packages/new" element={<CreatePackagePage />} />
             <Route path="/packages/:id" element={<PackageDetailPage />} />
             <Route path="/categories" element={<CategoryPage />} />
+            <Route path="/health" element={<HealthCheck />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>

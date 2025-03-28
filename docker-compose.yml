@@ -16,6 +16,12 @@ services:
     environment:
       - NODE_ENV=production
       - TZ=UTC
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   webapp:
     build:
@@ -28,14 +34,20 @@ services:
     networks:
       - stashly-network
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - POCKETBASE_URL=http://pocketbase:8090
-      - REACT_APP_API_URL=http://localhost:3000/api
+      - REACT_APP_API_URL=http://localhost:8090
       - REACT_APP_QR_SERVICE_URL=http://localhost:3001
     restart: unless-stopped
     volumes:
       - ./webapp:/app
-      - /app/node_modules
+      - node_modules_webapp:/app/node_modules
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000/health/index.json || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   qr-service:
     build:
@@ -48,14 +60,20 @@ services:
     networks:
       - stashly-network
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - QR_SERVICE_PORT=3001
       - PDF_STORAGE_PATH=/tmp/qr-pdfs
     volumes:
       - ./qr-service:/app
-      - /app/node_modules
+      - node_modules_qr:/app/node_modules
       - qr_pdfs:/tmp/qr-pdfs
     restart: unless-stopped
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 networks:
   stashly-network:
@@ -65,3 +83,5 @@ volumes:
   pb_data:
   pb_backups:
   qr_pdfs:
+  node_modules_webapp:
+  node_modules_qr:

@@ -21,23 +21,24 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install production dependencies
+# Install production dependencies and health check tools
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --only=production && \
+    apk add --no-cache wget
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Create directory for PDF storage
+# Create directory for PDF storage with proper permissions
 RUN mkdir -p /tmp/qr-pdfs && \
-    chown -R node:node /tmp/qr-pdfs
+    chmod 777 /tmp/qr-pdfs
 
-# Create directory for logs
+# Create directory for logs with proper permissions
 RUN mkdir -p /app/logs && \
-    chown -R node:node /app/logs
+    chmod 777 /app/logs
 
-# Switch to non-root user
-USER node
+# We'll keep root user for troubleshooting but ensure directories have correct permissions
+# USER node
 
 EXPOSE 3001
 

@@ -33,7 +33,7 @@ const api = axios.create({
 export const getPackages = async (params?: SearchParams): Promise<PaginatedResponse<Package>> => {
   try {
     console.log('API URL being used:', API_URL);
-    const response = await api.get('/collections/packages/records', { params });
+    const response = await api.get('/api/collections/packages/records', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching packages:', error);
@@ -43,7 +43,7 @@ export const getPackages = async (params?: SearchParams): Promise<PaginatedRespo
 
 export const getPackage = async (id: string): Promise<ApiResponse<Package>> => {
   try {
-    const response = await api.get(`/collections/packages/records/${id}`);
+    const response = await api.get(`/api/collections/packages/records/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching package ${id}:`, error);
@@ -53,7 +53,7 @@ export const getPackage = async (id: string): Promise<ApiResponse<Package>> => {
 
 export const createPackage = async (packageData: Partial<Package>): Promise<ApiResponse<Package>> => {
   try {
-    const response = await api.post('/collections/packages/records', packageData);
+    const response = await api.post('/api/collections/packages/records', packageData);
     return response.data;
   } catch (error) {
     console.error('Error creating package:', error);
@@ -63,7 +63,7 @@ export const createPackage = async (packageData: Partial<Package>): Promise<ApiR
 
 export const updatePackage = async (id: string, packageData: Partial<Package>): Promise<ApiResponse<Package>> => {
   try {
-    const response = await api.patch(`/collections/packages/records/${id}`, packageData);
+    const response = await api.patch(`/api/collections/packages/records/${id}`, packageData);
     return response.data;
   } catch (error) {
     console.error(`Error updating package ${id}:`, error);
@@ -73,7 +73,7 @@ export const updatePackage = async (id: string, packageData: Partial<Package>): 
 
 export const deletePackage = async (id: string): Promise<ApiResponse<null>> => {
   try {
-    const response = await api.delete(`/collections/packages/records/${id}`);
+    const response = await api.delete(`/api/collections/packages/records/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error deleting package ${id}:`, error);
@@ -83,7 +83,7 @@ export const deletePackage = async (id: string): Promise<ApiResponse<null>> => {
 
 export const searchPackages = async (params: SearchParams): Promise<PaginatedResponse<Package>> => {
   try {
-    const response = await api.get('/collections/packages/records', { 
+    const response = await api.get('/api/collections/packages/records', { 
       params: { 
         filter: params.query ? `name~"${params.query}"` : undefined,
         ...params 
@@ -99,7 +99,7 @@ export const searchPackages = async (params: SearchParams): Promise<PaginatedRes
 // Category API calls
 export const getCategories = async (): Promise<ApiResponse<Category[]>> => {
   try {
-    const response = await api.get('/collections/categories/records');
+    const response = await api.get('/api/collections/categories/records');
     return response.data;
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -109,7 +109,7 @@ export const getCategories = async (): Promise<ApiResponse<Category[]>> => {
 
 export const createCategory = async (categoryData: Partial<Category>): Promise<ApiResponse<Category>> => {
   try {
-    const response = await api.post('/collections/categories/records', categoryData);
+    const response = await api.post('/api/collections/categories/records', categoryData);
     return response.data;
   } catch (error) {
     console.error('Error creating category:', error);
@@ -119,7 +119,7 @@ export const createCategory = async (categoryData: Partial<Category>): Promise<A
 
 export const deleteCategory = async (id: string): Promise<ApiResponse<null>> => {
   try {
-    const response = await api.delete(`/collections/categories/records/${id}`);
+    const response = await api.delete(`/api/collections/categories/records/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error deleting category ${id}:`, error);

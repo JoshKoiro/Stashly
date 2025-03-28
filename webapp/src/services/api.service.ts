@@ -45,47 +45,44 @@ export const checkPocketBaseStatus = async (): Promise<boolean> => {
 // Package API calls - using PocketBase public API format
 export const getPackages = async (params?: SearchParams): Promise<PaginatedResponse<Package>> => {
   try {
-    // For demo/dev, if API is not set up yet, return mock data
-    const isApiReady = await checkPocketBaseStatus();
-    if (!isApiReady) {
-      console.log('API not ready, returning mock data');
-      return {
-        page: 1,
-        perPage: 10,
-        totalItems: 2,
-        totalPages: 1,
-        items: [
-          { 
-            id: '1', 
-            created: new Date().toISOString(),
-            updated: new Date().toISOString(),
-            display_id: 'PKG-001',
-            location: 'A1',
-            items: [{ name: 'Mock Item 1', quantity: 5, category: 'Electronics' }],
-            images: [],
-            status: 'active' as const,
-            created_by: 'system',
-            last_modified_by: 'system'
-          },
-          { 
-            id: '2', 
-            created: new Date().toISOString(),
-            updated: new Date().toISOString(),
-            display_id: 'PKG-002',
-            location: 'B2',
-            items: [{ name: 'Mock Item 2', quantity: 10, category: 'Office' }],
-            images: [],
-            status: 'active' as const,
-            created_by: 'system',
-            last_modified_by: 'system'
-          }
-        ]
-      };
-    }
+    // For now, always return mock data until we resolve the PocketBase setup issues
+    console.log('Returning mock data');
+    return {
+      page: 1,
+      perPage: 10,
+      totalItems: 2,
+      totalPages: 1,
+      items: [
+        { 
+          id: '1', 
+          created: new Date().toISOString(),
+          updated: new Date().toISOString(),
+          display_id: 'PKG-001',
+          location: 'A1',
+          items: [{ name: 'Mock Item 1', quantity: 5, category: 'Electronics' }],
+          images: [],
+          status: 'active' as const,
+          created_by: 'system',
+          last_modified_by: 'system'
+        },
+        { 
+          id: '2', 
+          created: new Date().toISOString(),
+          updated: new Date().toISOString(),
+          display_id: 'PKG-002',
+          location: 'B2',
+          items: [{ name: 'Mock Item 2', quantity: 10, category: 'Office' }],
+          images: [],
+          status: 'active' as const,
+          created_by: 'system',
+          last_modified_by: 'system'
+        }
+      ]
+    };
     
-    // Otherwise try to get data from API
-    const response = await api.get('/api/collections/packages/records', { params });
-    return response.data;
+    // Comment out API call for now
+    // const response = await api.get('/api/collections/packages/records', { params });
+    // return response.data;
   } catch (error) {
     console.error('Error fetching packages:', error);
     // Return mock data on error for demo purposes

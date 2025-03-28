@@ -39,15 +39,8 @@ RUN if [ ! -f ./build/favicon.ico ]; then \
     echo -ne '\x00\x00\x01\x00\x01\x00\x10\x10\x00\x00\x01\x00\x18\x00h\x03\x00\x00\x16\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00 \x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' > ./build/favicon.ico; \
     fi
 
-# Script to generate runtime env.js
-RUN echo '#!/bin/sh\n\
-cat > /app/build/env-config.js << EOF\n\
-window._env_ = {\n\
-  REACT_APP_API_URL: "${REACT_APP_API_URL}",\n\
-  REACT_APP_QR_SERVICE_URL: "${REACT_APP_QR_SERVICE_URL}"\n\
-}\n\
-EOF\n\
-exec "$@"' > /app/start.sh && chmod +x /app/start.sh
+# Create env-config.js directly in the build directory
+RUN echo 'window._env_ = {};' > ./build/env-config.js
 
 EXPOSE 3000
 
@@ -71,4 +64,4 @@ RUN echo '{\
 }' > /app/serve.json
 
 # Start the application with specific options
-CMD ["/app/start.sh", "serve", "-s", "build", "-l", "3000"]
+CMD ["sh", "-c", "echo \"window._env_ = { REACT_APP_API_URL: '${REACT_APP_API_URL}', REACT_APP_QR_SERVICE_URL: '${REACT_APP_QR_SERVICE_URL}' };\" > /app/build/env-config.js && serve -s build -l 3000"]

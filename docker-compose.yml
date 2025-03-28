@@ -36,8 +36,8 @@ services:
     environment:
       - NODE_ENV=production
       - POCKETBASE_URL=http://pocketbase:8090
-      - REACT_APP_API_URL=http://localhost:8090
-      - REACT_APP_QR_SERVICE_URL=http://localhost:3001
+      - REACT_APP_API_URL=http://docker.gnomehub.home:8090
+      - REACT_APP_QR_SERVICE_URL=http://docker.gnomehub.home:3001
     restart: unless-stopped
     volumes:
       - ./webapp:/app
@@ -47,7 +47,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 20s
 
   qr-service:
     build:
@@ -63,6 +63,7 @@ services:
       - NODE_ENV=production
       - QR_SERVICE_PORT=3001
       - PDF_STORAGE_PATH=/tmp/qr-pdfs
+      - CORS_ORIGIN=http://docker.gnomehub.home:8081
     volumes:
       - ./qr-service:/app
       - node_modules_qr:/app/node_modules

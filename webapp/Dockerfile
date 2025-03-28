@@ -21,8 +21,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install serve package
-RUN npm install -g serve@14.2.1
+# Install serve package with explicit version to avoid browsing-topics policy issue
+RUN npm install -g serve@13.0.4
 
 # Copy built files from builder stage
 COPY --from=builder /app/build ./build
@@ -31,10 +31,31 @@ COPY --from=builder /app/build ./build
 RUN mkdir -p ./build/health && \
     echo '{"status":"ok"}' > ./build/health/index.json
 
+# Create basic favicon if missing
+RUN if [ ! -f ./build/favicon.ico ]; then \
+    echo -ne '\x00\x00\x01\x00\x01\x00\x10\x10\x00\x00\x01\x00\x18\x00h\x03\x00\x00\x16\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00 \x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' > ./build/favicon.ico; \
+    fi
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health/index.json || exit 1
 
-# Start the application with specific options to fix CORS and other issues
-CMD ["serve", "-s", "build", "-l", "3000", "--no-clipboard", "--no-request-logging"]
+# Create serve.json configuration file to customize serve behavior
+RUN echo '{\
+  "headers": [\
+    {\
+      "source": "**/*",\
+      "headers": [\
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },\
+        { "key": "Permissions-Policy", "value": "interest-cohort=(), camera=(), microphone=()" }\
+      ]\
+    }\
+  ],\
+  "rewrites": [\
+    { "source": "**", "destination": "/index.html" }\
+  ]\
+}' > /app/serve.json
+
+# Start the application with specific options
+CMD ["serve", "-s", "build", "-l", "3000"]

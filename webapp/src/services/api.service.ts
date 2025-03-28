@@ -7,8 +7,19 @@ import {
   SearchParams 
 } from '../types';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
-const QR_SERVICE_URL = process.env.REACT_APP_QR_SERVICE_URL || 'http://localhost:3001';
+// Access runtime environment variables
+declare global {
+  interface Window {
+    _env_?: {
+      REACT_APP_API_URL?: string;
+      REACT_APP_QR_SERVICE_URL?: string;
+    };
+  }
+}
+
+// Use runtime environment variables if available, fall back to process.env, then defaults
+const API_URL = window._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8090';
+const QR_SERVICE_URL = window._env_?.REACT_APP_QR_SERVICE_URL || process.env.REACT_APP_QR_SERVICE_URL || 'http://localhost:3001';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -20,49 +31,100 @@ const api = axios.create({
 
 // Package API calls
 export const getPackages = async (params?: SearchParams): Promise<PaginatedResponse<Package>> => {
-  const response = await api.get('/packages', { params });
-  return response.data;
+  try {
+    console.log('API URL being used:', API_URL);
+    const response = await api.get('/collections/packages/records', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching packages:', error);
+    throw error;
+  }
 };
 
 export const getPackage = async (id: string): Promise<ApiResponse<Package>> => {
-  const response = await api.get(`/packages/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/collections/packages/records/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching package ${id}:`, error);
+    throw error;
+  }
 };
 
 export const createPackage = async (packageData: Partial<Package>): Promise<ApiResponse<Package>> => {
-  const response = await api.post('/packages', packageData);
-  return response.data;
+  try {
+    const response = await api.post('/collections/packages/records', packageData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating package:', error);
+    throw error;
+  }
 };
 
 export const updatePackage = async (id: string, packageData: Partial<Package>): Promise<ApiResponse<Package>> => {
-  const response = await api.patch(`/packages/${id}`, packageData);
-  return response.data;
+  try {
+    const response = await api.patch(`/collections/packages/records/${id}`, packageData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating package ${id}:`, error);
+    throw error;
+  }
 };
 
 export const deletePackage = async (id: string): Promise<ApiResponse<null>> => {
-  const response = await api.delete(`/packages/${id}`);
-  return response.data;
+  try {
+    const response = await api.delete(`/collections/packages/records/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting package ${id}:`, error);
+    throw error;
+  }
 };
 
 export const searchPackages = async (params: SearchParams): Promise<PaginatedResponse<Package>> => {
-  const response = await api.get('/packages/search', { params });
-  return response.data;
+  try {
+    const response = await api.get('/collections/packages/records', { 
+      params: { 
+        filter: params.query ? `name~"${params.query}"` : undefined,
+        ...params 
+      } 
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching packages:', error);
+    throw error;
+  }
 };
 
 // Category API calls
 export const getCategories = async (): Promise<ApiResponse<Category[]>> => {
-  const response = await api.get('/categories');
-  return response.data;
+  try {
+    const response = await api.get('/collections/categories/records');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
 };
 
 export const createCategory = async (categoryData: Partial<Category>): Promise<ApiResponse<Category>> => {
-  const response = await api.post('/categories', categoryData);
-  return response.data;
+  try {
+    const response = await api.post('/collections/categories/records', categoryData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating category:', error);
+    throw error;
+  }
 };
 
 export const deleteCategory = async (id: string): Promise<ApiResponse<null>> => {
-  const response = await api.delete(`/categories/${id}`);
-  return response.data;
+  try {
+    const response = await api.delete(`/collections/categories/records/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting category ${id}:`, error);
+    throw error;
+  }
 };
 
 // QR Code API calls

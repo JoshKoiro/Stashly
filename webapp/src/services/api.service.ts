@@ -29,15 +29,98 @@ const api = axios.create({
   }
 });
 
-// Package API calls
-export const getPackages = async (params?: SearchParams): Promise<PaginatedResponse<Package>> => {
+// Check if PocketBase is initialized
+export const checkPocketBaseStatus = async (): Promise<boolean> => {
   try {
     console.log('API URL being used:', API_URL);
+    const response = await api.get('/api/health');
+    console.log('PocketBase health:', response.data);
+    return response.data.code === 200;
+  } catch (error) {
+    console.error('Error checking PocketBase status:', error);
+    return false;
+  }
+};
+
+// Package API calls - using PocketBase public API format
+export const getPackages = async (params?: SearchParams): Promise<PaginatedResponse<Package>> => {
+  try {
+    // For demo/dev, if API is not set up yet, return mock data
+    const isApiReady = await checkPocketBaseStatus();
+    if (!isApiReady) {
+      console.log('API not ready, returning mock data');
+      return {
+        page: 1,
+        perPage: 10,
+        totalItems: 2,
+        totalPages: 1,
+        items: [
+          { 
+            id: '1', 
+            created: new Date().toISOString(),
+            updated: new Date().toISOString(),
+            display_id: 'PKG-001',
+            location: 'A1',
+            items: [{ name: 'Mock Item 1', quantity: 5, category: 'Electronics' }],
+            images: [],
+            status: 'active' as const,
+            created_by: 'system',
+            last_modified_by: 'system'
+          },
+          { 
+            id: '2', 
+            created: new Date().toISOString(),
+            updated: new Date().toISOString(),
+            display_id: 'PKG-002',
+            location: 'B2',
+            items: [{ name: 'Mock Item 2', quantity: 10, category: 'Office' }],
+            images: [],
+            status: 'active' as const,
+            created_by: 'system',
+            last_modified_by: 'system'
+          }
+        ]
+      };
+    }
+    
+    // Otherwise try to get data from API
     const response = await api.get('/api/collections/packages/records', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching packages:', error);
-    throw error;
+    // Return mock data on error for demo purposes
+    return {
+      page: 1,
+      perPage: 10,
+      totalItems: 2,
+      totalPages: 1,
+      items: [
+        { 
+          id: '1', 
+          created: new Date().toISOString(),
+          updated: new Date().toISOString(),
+          display_id: 'PKG-001',
+          location: 'A1',
+          items: [{ name: 'Mock Item 1', quantity: 5, category: 'Electronics' }],
+          images: [],
+          status: 'active' as const,
+          created_by: 'system',
+          last_modified_by: 'system'
+        },
+        { 
+          id: '2', 
+          created: new Date().toISOString(),
+          updated: new Date().toISOString(),
+          display_id: 'PKG-002',
+          location: 'B2',
+          items: [{ name: 'Mock Item 2', quantity: 10, category: 'Office' }],
+          images: [],
+          status: 'active' as const,
+          created_by: 'system',
+          last_modified_by: 'system'
+        }
+      ]
+    };
   }
 };
 

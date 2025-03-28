@@ -24,7 +24,7 @@ services:
     depends_on:
       - pocketbase
     ports:
-      - "8080:3000"
+      - "8081:3000"
     networks:
       - stashly-network
     environment:

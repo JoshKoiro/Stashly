@@ -40,7 +40,8 @@ services:
       - REACT_APP_QR_SERVICE_URL=http://docker.gnomehub.home:3001
     restart: unless-stopped
     volumes:
-      - ./webapp:/app
+      # Comment out this volume mount as it may override the built files
+      # - ./webapp:/app
       - node_modules_webapp:/app/node_modules
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:3000/health/index.json || exit 1

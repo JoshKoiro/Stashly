@@ -74,8 +74,7 @@ stashly/
 │       ├── db/            # Database models and configuration
 │       └── server.ts      # Backend entry point
 ├── data/                  # SQLite database files
-├── uploads/              # Uploaded images
-└── design-example/       # Design reference files
+└── uploads/              # Uploaded images
 ```
 
 ## API Endpoints
@@ -111,4 +110,4 @@ stashly/
 
 ## License
 
-ISC 
+GPL-3.0 license

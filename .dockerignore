@@ -1,0 +1,12 @@
+.git
+.env
+node_modules
+dist
+data
+uploads
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Add any other local files or logs you don't want in the image
+*.md # Usually not needed in the container
+work-time.js # Script not needed in container

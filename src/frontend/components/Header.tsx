@@ -32,7 +32,7 @@ const Header: React.FC = () => {
       <div className="container header-content">
         <Link to="/" className="logo">
           {/* <i className="fas fa-box"></i> */}
-          <img src="/src/frontend/assets/logo.png" alt="Stashly Logo" className="logo-image" />
+          <img src="/logo.png" alt="Stashly Logo" className="logo-image" />
           Stashly
         </Link>
         <form className="search-bar" onSubmit={handleSearch}>

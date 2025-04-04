@@ -1,0 +1,8 @@
+node_modules/
+.git/
+*.log
+dist/
+uploads/
+data/
+design-example/
+LICENSE

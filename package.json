@@ -9,6 +9,7 @@
     "dev:backend": "ts-node-dev --project tsconfig.backend.json --respawn --transpile-only src/backend/server.ts",
     "build": "tsc -p tsconfig.backend.json && vite build",
     "start": "cross-env NODE_ENV=production node dist/backend/server.js",
+    "yeet": "node node_modules/code-context-yeeter/yeetCode.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -22,6 +23,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "code-context-yeeter": "github:JoshKoiro/code-context-yeeter",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "multer": "^1.4.5-lts.1",

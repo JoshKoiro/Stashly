@@ -1,4 +1,4 @@
-<img src="./imgs/banner.png" alt="Stashly Banner"> <!-- Updated path assuming you moved logo to public -->
+<img src="./imgs/Banner.png" alt="Stashly Banner"> <!-- Updated path assuming you moved logo to public -->
 
 # Stashly - Inventory Management System
 

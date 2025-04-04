@@ -25,7 +25,8 @@ WORKDIR /app
 
 # Set NODE_ENV to production
 ENV NODE_ENV=production
-ENV PORT=3000
+# Optional: Define the port, although the app reads it or defaults
+# ENV PORT=3000
 
 # Copy package files again
 COPY package.json package-lock.json ./
@@ -50,5 +51,5 @@ USER appuser
 # Expose the port the application listens on
 EXPOSE 3000
 
-# The command to run the application
-CMD ["npm", "start"]
+# The command to run the application using the container-specific script
+CMD ["npm", "run", "start-container"]

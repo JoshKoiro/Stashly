@@ -21,7 +21,7 @@
     "nodejs"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "dependencies": {
     "code-context-yeeter": "github:JoshKoiro/code-context-yeeter",
     "cors": "^2.8.5",

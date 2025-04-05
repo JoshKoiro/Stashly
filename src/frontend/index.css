@@ -1322,4 +1322,102 @@ tbody tr:hover {
   .section-header h2 {
     margin-top: 2rem;
   }
+}
+
+.offset-selector,
+.copies-selector {
+  display: flex;
+  align-items: center;
+}
+
+.offset-label,
+.copies-label {
+  margin-right: 5px; /* Consistent spacing */
+  color: var(--text-color-muted);
+}
+
+.offset-input,
+.copy-input {
+  /* Use existing styles from .copy-input or .form-group input */
+  /* Ensure consistent width, padding, margin, border, etc. */
+  width: 60px; /* Already set inline, but good for consistency */
+  margin-left: 5px;
+  margin-right: 10px;
+  padding: 5px;
+  border: 1px solid var(--input-border-color);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  color: var(--text-color-slightly-muted);
+}
+
+.form-group input,
+.form-group textarea,
+.offset-input, /* Apply general form styles */
+.copy-input {   /* Apply general form styles */
+  background-color: var(--input-background);
+  color: var(--text-color-slightly-muted);
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--input-border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input.file-btn::file-selector-button {
+  background-color: var(--primary);
+  color: var(--off-white);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  margin-right: 1rem;
+}
+
+.form-group input.file-btn {
+  cursor: pointer;
+}
+
+.form-group input.file-btn::file-selector-button:hover {
+  background-color: var(--primary-light);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.submit-btn, .cancel-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.submit-btn {
+  background-color: var(--primary);
+  color: var(--off-white);
+}
+
+.submit-btn:hover {
+  background-color: var(--primary-light);
+}
+
+.cancel-btn {
+  background-color: var(--gray);
+  color: var(--off-white);
+}
+
+.cancel-btn:hover {
+  background-color: var(--primary-light);
 } 

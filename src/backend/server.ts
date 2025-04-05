@@ -291,8 +291,9 @@ app.get('/api/packages/:id/qr', async (req, res) => {
 // QR Code label PDF generation
 app.post('/api/qr-labels', async (req, res) => {
   try {
-    const { packageIds, copies: requestedCopies } = req.body;
+    const { packageIds, copies: requestedCopies, offset: requestedOffset } = req.body;
     const copies = Math.max(1, parseInt(requestedCopies, 10) || 1); // Default to 1 copy
+    const offset = Math.max(0, parseInt(requestedOffset, 10) || 0); // Default to 0 offset, ensure non-negative
 
     if (!Array.isArray(packageIds) || packageIds.length === 0) {
       res.status(400).json({ error: 'Invalid package IDs' });
@@ -341,24 +342,27 @@ app.post('/api/qr-labels', async (req, res) => {
     const idFontSize = 14;
     const locationFontSize = 10; // Increased font size
 
-    let currentPage = 0;
-    doc.addPage(); // Start with the first page
+    let currentPage = -1; // Initialize to -1 to handle first page creation correctly
+    // doc.addPage(); // Remove initial page add, let the loop handle it
 
     // Iterate through the potentially duplicated list of labels
     for (let i = 0; i < labelsToPrint.length; i++) {
       const package_ = labelsToPrint[i]; // Get the package data for the current label
       // No need to check if package_ is null here as flatMap filtered them
 
-      // Calculate page and position based on the overall label index 'i'
+      // Calculate the effective index considering the offset
+      const effectiveIndex = i + offset;
+
+      // Calculate page and position based on the effective index
       const totalLabelsPerPage = labelsPerRow * labelsPerColumn;
-      const pageIndex = Math.floor(i / totalLabelsPerPage);
-      const labelIndexOnPage = i % totalLabelsPerPage;
+      const pageIndex = Math.floor(effectiveIndex / totalLabelsPerPage);
+      const labelIndexOnPage = effectiveIndex % totalLabelsPerPage;
       const row = Math.floor(labelIndexOnPage / labelsPerRow);
       const col = labelIndexOnPage % labelsPerRow;
 
       // Add a new page if necessary
       if (pageIndex > currentPage) {
-        doc.addPage();
+        doc.addPage(); // Add page only when needed
         currentPage = pageIndex;
       }
 

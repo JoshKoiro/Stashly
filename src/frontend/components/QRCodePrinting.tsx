@@ -9,6 +9,7 @@ export default function QRCodePrinting() {
   const [error, setError] = useState<string | null>(null);
   const [printing, setPrinting] = useState(false);
   const [numCopies, setNumCopies] = useState(1);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
     const fetchPackages = async () => {
@@ -75,6 +76,8 @@ export default function QRCodePrinting() {
           packageIds: packageIdsToPrint,
           // Pass the number of copies
           copies: numCopies,
+          // Pass the offset
+          offset: offset,
         }),
       });
 
@@ -117,6 +120,21 @@ export default function QRCodePrinting() {
            <h2>Print QR Codes</h2>
         </div>
         <div className="header-actions">
+          {/* Add offset input field */}
+          <div className="offset-selector">
+             <label className="offset-label" htmlFor="offset">Offset:</label>
+             <input
+                type="number"
+                className="offset-input"
+                id="offset"
+                name="offset"
+                min="0"
+                value={offset}
+                onChange={(e) => setOffset(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                disabled={printing}
+                style={{ width: '60px', marginLeft: '5px', marginRight: '10px', padding: '5px' }}
+             />
+          </div>
           {/* Add number input for copies */}
           <div className="copies-selector">
             <label className="copies-label" htmlFor="numCopies">Copies:</label>

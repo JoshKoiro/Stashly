@@ -288,155 +288,57 @@ app.get('/api/packages/:id/qr', async (req, res) => {
   }
 });
 
-// QR Code label PDF generation
-app.post('/api/qr-labels', async (req, res) => {
+// Modified Endpoint: Return data for QR Code Label Preview
+app.get('/api/qr-labels-preview', async (req, res) => {
   try {
-    const { packageIds, copies: requestedCopies, offset: requestedOffset } = req.body;
-    const copies = Math.max(1, parseInt(requestedCopies, 10) || 1); // Default to 1 copy
-    const offset = Math.max(0, parseInt(requestedOffset, 10) || 0); // Default to 0 offset, ensure non-negative
+    const { packageIds: packageIdsQuery, copies: copiesQuery, offset: offsetQuery } = req.query;
 
-    if (!Array.isArray(packageIds) || packageIds.length === 0) {
-      res.status(400).json({ error: 'Invalid package IDs' });
-      return;
+    if (typeof packageIdsQuery !== 'string' || !packageIdsQuery) {
+      // Return JSON error
+      return res.status(400).json({ error: 'Missing or invalid packageIds query parameter.' });
     }
 
-    const packages = await Promise.all(
-      packageIds.map(id => db.getPackage(id))
+    const packageIds = packageIdsQuery.split(',').map(id => id.trim()).filter(id => id); // Trim and filter empty strings
+    const copies = Math.max(1, parseInt(copiesQuery as string || '1', 10));
+    const offset = Math.max(0, parseInt(offsetQuery as string || '0', 10));
+
+    if (packageIds.length === 0) {
+        return res.status(400).json({ error: 'No package IDs provided.' });
+    }
+
+    // Fetch package data
+    // Use Promise.allSettled to handle cases where some packages might not be found
+    const results = await Promise.allSettled(
+        packageIds.map(id => db.getPackage(id))
     );
 
-    // Create a list of labels to print, duplicating packages based on 'copies'
-    const labelsToPrint = packages.flatMap(pkg =>
-      pkg ? Array(copies).fill(pkg) : [] // Repeat valid packages 'copies' times
-    );
+    const validPackages = results
+        .filter(result => result.status === 'fulfilled' && result.value)
+        .map(result => (result as PromiseFulfilledResult<any>).value);
 
-    if (labelsToPrint.length === 0) {
-      // Handle case where no valid packages were found or provided
-      res.status(400).json({ error: 'No valid packages found to generate labels.' });
-      return;
+    if (validPackages.length === 0) {
+        // If IDs were provided but none were found/valid
+        return res.status(404).json({ error: 'No valid packages found for the provided IDs.' });
     }
 
-    const doc = new PDFDocument({
-      size: 'LETTER',
-      margin: 0,
-      autoFirstPage: false
-    });
+    // Construct the base URL needed for QR codes on the client-side
+    // Note: req.protocol might be http if behind a proxy, consider X-Forwarded-Proto header if applicable
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const baseUrl = `${protocol}://${req.get('host')}`;
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline; filename=qr-labels.pdf');
-    doc.pipe(res);
+    // Prepare data to be sent as JSON
+    const responseData = {
+        packages: validPackages,
+        copies,
+        offset,
+        baseUrl,
+    };
 
-    // Avery 5160 Label Layout Constants (in points)
-    const labelWidth = 2.625 * 72;
-    const labelHeight = 1 * 72;
-    const marginTop = 0.5 * 72;       // Top margin
-    const marginLeft = 0.1875 * 72;   // Left margin
-    const horizontalGutter = 0.125 * 72; // Horizontal space between labels
-    const verticalGutter = 0;         // No vertical space between labels in this format
-    const labelsPerRow = 3;
-    const labelsPerColumn = 10;
-    const labelsPerPage = labelsPerRow * labelsPerColumn;
-    const labelPadding = 5; // Internal padding within the label
+    res.json(responseData);
 
-    // Font settings
-    const baseFont = 'Helvetica';
-    const idFontSize = 14;
-    const locationFontSize = 10; // Increased font size
-
-    let currentPage = -1; // Initialize to -1 to handle first page creation correctly
-    // doc.addPage(); // Remove initial page add, let the loop handle it
-
-    // Iterate through the potentially duplicated list of labels
-    for (let i = 0; i < labelsToPrint.length; i++) {
-      const package_ = labelsToPrint[i]; // Get the package data for the current label
-      // No need to check if package_ is null here as flatMap filtered them
-
-      // Calculate the effective index considering the offset
-      const effectiveIndex = i + offset;
-
-      // Calculate page and position based on the effective index
-      const totalLabelsPerPage = labelsPerRow * labelsPerColumn;
-      const pageIndex = Math.floor(effectiveIndex / totalLabelsPerPage);
-      const labelIndexOnPage = effectiveIndex % totalLabelsPerPage;
-      const row = Math.floor(labelIndexOnPage / labelsPerRow);
-      const col = labelIndexOnPage % labelsPerRow;
-
-      // Add a new page if necessary
-      if (pageIndex > currentPage) {
-        doc.addPage(); // Add page only when needed
-        currentPage = pageIndex;
-      }
-
-      // Calculate top-left corner of the current label
-      const x = marginLeft + col * (labelWidth + horizontalGutter);
-      const y = marginTop + row * (labelHeight + verticalGutter);
-
-      // --- Draw Label Content ---
-      const contentX = x + labelPadding;
-      const contentY = y + labelPadding;
-      const contentWidth = labelWidth - 2 * labelPadding;
-      const contentHeight = labelHeight - 2 * labelPadding;
-
-      // QR Code Generation and Placement
-      const qrSize = contentHeight * 0.9; // Slightly smaller QR code for padding
-      const qrCodeX = contentX;
-      // Center QR code vertically within the content height
-      const qrCodeY = contentY + (contentHeight - qrSize) / 2;
-      const url = `${req.protocol}://${req.get('host')}/packages/${package_.id}`;
-      const qrCodeDataUrl = await QRCode.toDataURL(url, {
-        width: qrSize,
-        margin: 1, // Small internal margin for the QR code itself
-        errorCorrectionLevel: 'M'
-      });
-
-      // Add QR Code Image (ensure width and height are the same to prevent stretching)
-      doc.image(qrCodeDataUrl, qrCodeX, qrCodeY, {
-        width: qrSize,
-        height: qrSize
-      });
-
-      // Text Area Calculation
-      const textX = qrCodeX + qrSize + labelPadding; // Start text after QR code + padding
-      const textWidth = contentWidth - qrSize - labelPadding; // Remaining width for text
-
-      // Calculate text heights for vertical centering
-      doc.font(baseFont + '-Bold').fontSize(idFontSize);
-      // Use lineBreak: false for ID height calculation as we want it on one line if possible
-      const idHeight = doc.heightOfString(package_.display_id, { width: textWidth, lineBreak: false });
-
-      doc.font(baseFont).fontSize(locationFontSize);
-      // Use lineBreak: true for location height calculation as we want it to wrap
-      const locationText = package_.location || 'N/A';
-      const locationHeight = doc.heightOfString(locationText, { width: textWidth, lineBreak: true });
-
-      const totalTextHeight = idHeight + locationHeight + 2; // +2 for the gap
-      const textStartY = contentY + (contentHeight - totalTextHeight) / 2; // Center the text block vertically
-
-      // Add Display ID (Large Font)
-      doc.font(baseFont + '-Bold').fontSize(idFontSize);
-      doc.text(package_.display_id, textX, textStartY, {
-        width: textWidth,
-        align: 'left',
-        lineBreak: false, // Keep ID on one line if possible
-        ellipsis: true      // Use ellipsis if ID is too long
-      });
-
-      // Add Location (Slightly Larger Font, Wrapped)
-      doc.font(baseFont).fontSize(locationFontSize);
-      const locationY = textStartY + idHeight + 2; // Position location below the ID
-      doc.text(locationText, textX, locationY, {
-        width: textWidth,
-        align: 'left',
-        lineBreak: true // Allow location to wrap
-        // No ellipsis needed if we allow wrapping
-      });
-
-      // // Optional: Draw border around label for debugging layout
-      // doc.rect(x, y, labelWidth, labelHeight).stroke();
-    }
-
-    doc.end();
   } catch (error) {
-    res.status(500).json({ error: 'Failed to generate QR code labels' });
+    console.error('Error serving QR label preview data:', error);
+    res.status(500).json({ error: 'Failed to fetch QR code labels preview data' });
   }
 });
 

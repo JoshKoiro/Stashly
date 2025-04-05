@@ -145,7 +145,11 @@ export default function QRCodeLabelPreview() {
                         
                         const url = `${previewData.baseUrl}/packages/${label.id}`;
                         const qrOptions: QRCodeStylingOptions = {
-                            width: 65, height: 65, data: url, margin: 0,
+                            type: 'svg', // Render as SVG
+                            width: 80,
+                            height: 80,
+                            data: url,
+                            margin: 0,
                             qrOptions: { errorCorrectionLevel: 'M' },
                             dotsOptions: { color: "#000080", type: "rounded" as DotType },
                             cornersSquareOptions: { color: "#000080", type: "extra-rounded" as CornerSquareType },
@@ -176,7 +180,8 @@ export default function QRCodeLabelPreview() {
                     filename: filename,
                     image: { type: 'png', quality: 1.0 },
                     html2canvas: {
-                        scale: 2, useCORS: true, logging: false,
+                        scale: 2,
+                        useCORS: true, logging: false,
                     },
                     jsPDF: {
                         unit: 'in', format: 'letter', orientation: 'portrait'
@@ -258,34 +263,16 @@ export default function QRCodeLabelPreview() {
                 {labelsToRender.map((label, index) => {
                     const url = `${previewData.baseUrl}/packages/${label.id}`;
                     const qrOptions: QRCodeStylingOptions = {
-                        width: 65, // Desired final size in px
-                        height: 65,
+                        type: 'svg', // Render as SVG
+                        width: 80,
+                        height: 80,
                         data: url,
-                        margin: 0, // Margin inside the QR code pattern itself
-                         qrOptions: {
-                             errorCorrectionLevel: 'M', // Medium correction
-                         },
-                        dotsOptions: {
-                            color: "#000080", // Navy Blue
-                            type: "rounded" as DotType // Ensure type safety
-                        },
-                        cornersSquareOptions: {
-                            color: "#000080",
-                            type: "extra-rounded" as CornerSquareType
-                        },
-                        cornersDotOptions: {
-                             color: "#000080",
-                             type: "dot" as CornerDotType // Or 'square' if preferred
-                         },
-                        backgroundOptions: {
-                            color: "#ffffff", // White background
-                        },
-                        // imageOptions: { // If you want a logo in the middle (optional)
-                        //     src: '/logo-small.png', // Path to your small logo
-                        //     margin: 4,
-                        //     imageSize: 0.4, // Proportion of QR code size
-                        //     crossOrigin: 'anonymous',
-                        // }
+                        margin: 0,
+                        qrOptions: { errorCorrectionLevel: 'M' },
+                        dotsOptions: { color: "#000080", type: "rounded" as DotType },
+                        cornersSquareOptions: { color: "#000080", type: "extra-rounded" as CornerSquareType },
+                        cornersDotOptions: { color: "#000080", type: "dot" as CornerDotType },
+                        backgroundOptions: { color: "#ffffff" },
                     };
 
                     return (

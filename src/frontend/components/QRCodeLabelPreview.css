@@ -63,7 +63,7 @@
 .label-cell {
     width: 2.625in;
     height: 1in;
-    padding: 5pt; /* Small padding inside the label ~7px */
+    padding: 6pt; /* Increased padding for better spacing (~8px) */
     box-sizing: border-box;
     overflow: hidden; /* Prevent content spillover */
     display: flex;
@@ -89,10 +89,11 @@
 /* Ensure the container holding the QR code itself doesn't add extra space */
 .qr-code-container {
     flex-shrink: 0; /* Don't shrink the QR code container */
-    width: 65px;
-    height: 65px;
-    margin-right: 8pt; /* Space between QR and text */
-    display: flex; /* Needed for QR styling lib to append */
+    width: 80px; /* Match new QR code size */
+    height: 80px; /* Match new QR code size */
+    margin-left: 6pt; /* Space on the left of the QR code */
+    margin-right: 8pt; /* Space between QR and text - check if still appropriate */
+    display: flex; 
     align-items: center;
     justify-content: center;
 }

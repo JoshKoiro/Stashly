@@ -42,8 +42,8 @@
 .labels-container {
     /* Screen centering */
     margin: 1rem auto; 
-    width: 8.125in; 
-    height: 10in;
+    width: 8.5in; 
+    height: 11in;
     display: grid;
     grid-template-columns: repeat(3, 2.625in);
     grid-template-rows: repeat(10, 1in);
@@ -53,6 +53,9 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     page-break-inside: avoid;
     overflow: hidden;
+    /* centers items both horizontally and vertically */
+    justify-content: center;
+    align-content: center;
 }
 
 .label-cell {

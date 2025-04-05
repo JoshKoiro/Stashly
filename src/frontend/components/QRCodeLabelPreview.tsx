@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import QRCodeStyling, { Options as QRCodeStylingOptions, CornerSquareType, CornerDotType, DotType } from 'qr-code-styling';
-import html2pdf from 'html2pdf.js';
-import { Package } from '../../backend/db/schema'; // Assuming Package type is defined
-import './QRCodeLabelPreview.css'; // We will create this CSS file
+import { Package } from '../../backend/db/schema';
+import './QRCodeLabelPreview.css';
 
 interface PreviewData {
     packages: Package[];
@@ -54,8 +53,8 @@ export default function QRCodeLabelPreview() {
     const [error, setError] = useState<string | null>(null);
     const [previewData, setPreviewData] = useState<PreviewData | null>(null);
     const [labelsToRender, setLabelsToRender] = useState<LabelInfo[]>([]);
-    const [pdfGenerating, setPdfGenerating] = useState(false);
 
+    // Keep ref for potential future use, but not strictly needed for window.print()
     const labelsContainerRef = useRef<HTMLDivElement>(null);
 
     const packageIds = searchParams.get('packageIds');
@@ -98,183 +97,51 @@ export default function QRCodeLabelPreview() {
         };
 
         fetchPreviewData();
-    }, [packageIds, copies, offset]); // Re-fetch if params change
+    }, [packageIds, copies, offset]);
 
-    const handleCreatePdf = useCallback(() => {
-        const originalElement = labelsContainerRef.current;
-        if (!originalElement || !previewData) return;
-
-        setPdfGenerating(true);
-        setError(null);
-
-        // Introduce a small delay to allow QR codes to render
-        setTimeout(() => {
-            const currentOriginalElement = labelsContainerRef.current; // Re-access ref inside timeout
-            if (!currentOriginalElement || !previewData) {
-                setPdfGenerating(false); // Ensure state is reset if element disappears
-                return;
-            }
-
-            // --- Clone the element --- 
-            const clone = currentOriginalElement.cloneNode(true) as HTMLElement;
-            
-            // Style the clone to be off-screen but renderable
-            clone.style.position = 'absolute';
-            clone.style.left = '0px';
-            clone.style.top = '0px';
-            clone.style.zIndex = '-1'; // Ensure it's behind everything
-            // Ensure the clone also has the necessary dimensions explicitly set for capture
-            clone.style.width = '8.125in'; 
-            clone.style.height = '10in';
-            clone.style.margin = '0'; // Remove any inherited margin
-            clone.style.boxShadow = 'none'; // Remove visual shadow
-
-            // Append clone to body
-            document.body.appendChild(clone);
-            // --- End Cloning ---
-
-            // --- Render QR Codes directly into the CLONE --- 
-            const qrContainersInClone = clone.querySelectorAll('.qr-code-container');
-            // Ensure the number of containers matches the number of labels rendered
-            if (qrContainersInClone.length === labelsToRender.length) {
-                labelsToRender.forEach((label, index) => {
-                    const containerDiv = qrContainersInClone[index] as HTMLElement;
-                    if (containerDiv) {
-                         // Clear any potential old content (like empty divs from original component)
-                        containerDiv.innerHTML = ''; 
-                        
-                        const url = `${previewData.baseUrl}/packages/${label.id}`;
-                        const qrOptions: QRCodeStylingOptions = {
-                            type: 'svg', // Render as SVG
-                            width: 80,
-                            height: 80,
-                            data: url,
-                            margin: 0,
-                            qrOptions: { errorCorrectionLevel: 'M' },
-                            dotsOptions: { color: "#000080", type: "rounded" as DotType },
-                            cornersSquareOptions: { color: "#000080", type: "extra-rounded" as CornerSquareType },
-                            cornersDotOptions: { color: "#000080", type: "dot" as CornerDotType },
-                            backgroundOptions: { color: "#ffffff" },
-                        };
-                        const qrInstance = new QRCodeStyling(qrOptions);
-                        qrInstance.append(containerDiv);
-                    }
-                });
-            } else {
-                 console.error('Mismatch between label data and QR containers in clone.');
-                 // Handle error: maybe skip PDF generation or show an error message
-                 setError("Failed to prepare QR codes for PDF. Mismatch detected.");
-                 document.body.removeChild(clone); // Clean up clone
-                 setPdfGenerating(false);
-                 return; // Stop PDF generation
-            }
-            // --- End QR Code Rendering into Clone ---
-
-             // Optional: Add a tiny delay AFTER rendering QR codes into clone, BEFORE capture
-            setTimeout(() => {
-                const { offset } = previewData; // Access again inside this timeout
-                const filename = `qr-labels-offset-${offset}.pdf`;
-
-                const opt = {
-                    margin: [0.5, 0.1875, 0.5, 0.1875],
-                    filename: filename,
-                    image: { type: 'png', quality: 1.0 },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true, logging: false,
-                    },
-                    jsPDF: {
-                        unit: 'in', format: 'letter', orientation: 'portrait'
-                    },
-                    pagebreak: { mode: ['css', 'avoid-all'] },
-                };
-
-                // Capture the CLONE
-                html2pdf()
-                    .set(opt)
-                    .from(clone)
-                    .output('bloburl')
-                    .then((value: string | Blob) => {
-                        if (typeof value === 'string') {
-                            window.open(value, '_blank');
-                        } else {
-                            console.error("html2pdf.output('bloburl') returned a Blob, expected a string URL.");
-                            setError("Failed to generate PDF URL. Unexpected return type.");
-                        }
-                    })
-                    .catch((err: Error) => {
-                        console.error("Error generating PDF:", err);
-                        setError(`Failed to generate PDF: ${err.message}`);
-                    })
-                    .finally(() => {
-                        // Clean up: Remove the clone
-                        if (document.body.contains(clone)) {
-                            document.body.removeChild(clone);
-                        }
-                        setPdfGenerating(false);
-                    });
-                 }, 100); // 100ms delay after clone QR render, before capture. Adjust if needed.
-
-        }, 250); // Keep initial delay for original DOM stability before cloning
-
-    }, [previewData, labelsToRender]); // Add labelsToRender dependency
+    // --- Renamed handler, now calls window.print() --- 
+    const handlePrint = useCallback(() => {
+        // No complex logic needed, just trigger browser print
+        window.print();
+    }, []); // No dependencies needed now
 
     if (loading) return <div className="loading">Loading label preview...</div>;
-    // Display specific error first if it exists
     if (error) return <div className="error">Error: {error} <Link to="/print-qr">Go Back</Link></div>;
-    // Handle case where data might be null even if not loading and no specific error (shouldn't happen with current logic)
     if (!previewData) return <div className="error">Could not load preview data. <Link to="/print-qr">Go Back</Link></div>;
-    // Handle case where valid packages resulted in zero labels (e.g., copies=0, though backend enforces min 1)
     if (labelsToRender.length === 0) return <div className="info">No labels to display based on selection. <Link to="/print-qr">Go Back</Link></div>;
 
-
-    // Calculate the number of placeholder cells needed for the offset
-    const placeholderCells = Array(previewData.offset % 30).fill(null); // 30 labels per page
+    const placeholderCells = Array(previewData ? previewData.offset % 30 : 0).fill(null);
 
     return (
-        <div className="qr-label-preview-page">
-            <div className="preview-controls">
+        // Add a class to the root element for easier print targeting
+        <div className="qr-label-preview-page print-root">
+             <div className="preview-controls print-hide">
                  <Link to="/print-qr" className="back-btn">
                     <i className="fas fa-arrow-left"></i> Back to Selection
                  </Link>
                 <h1>QR Label Preview</h1>
-                <button onClick={handleCreatePdf} disabled={pdfGenerating} className="print-btn">
-                    {pdfGenerating ? (
-                        <>
-                            <i className="fas fa-spinner fa-spin"></i> Generating PDF...
-                        </>
-                    ) : (
-                         <>
-                            <i className="fas fa-file-pdf"></i> Create PDF
-                         </>
-                    )}
+                {/* Update button text and action */}
+                <button onClick={handlePrint} className="print-btn">
+                    <i className="fas fa-print"></i> Print Labels
                 </button>
             </div>
 
-            {/* This is the div that html2pdf will capture */}
-            {/* Add 'printable-area' class for potential specific styling */}
+            {/* Container for labels */}
             <div ref={labelsContainerRef} className="labels-container printable-area">
-                 {/* Add placeholders for offset */}
                  {placeholderCells.map((_, index) => (
                     <div key={`offset-${index}`} className="label-cell placeholder"></div>
                 ))}
-
-                {/* Render actual labels */}
                 {labelsToRender.map((label, index) => {
                     const url = `${previewData.baseUrl}/packages/${label.id}`;
                     const qrOptions: QRCodeStylingOptions = {
-                        type: 'svg', // Render as SVG
-                        width: 80,
-                        height: 80,
-                        data: url,
-                        margin: 0,
+                         type: 'svg', // KEEP SVG for best print quality
+                        width: 80, height: 80, data: url, margin: 0,
                         qrOptions: { errorCorrectionLevel: 'M' },
                         dotsOptions: { color: "#000080", type: "rounded" as DotType },
                         cornersSquareOptions: { color: "#000080", type: "extra-rounded" as CornerSquareType },
                         cornersDotOptions: { color: "#000080", type: "dot" as CornerDotType },
                         backgroundOptions: { color: "#ffffff" },
                     };
-
                     return (
                         <div key={`${label.id}-${index}`} className="label-cell">
                             <div className="label-content">

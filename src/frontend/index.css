@@ -1310,4 +1310,16 @@ tbody tr:hover {
     padding: 12px 18px;
     font-size: 1rem;
   }
+
+  .section-header {
+    flex-direction: column;
+    gap: 2rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .section-header h2 {
+    margin-top: 2rem;
+  }
 } 

@@ -119,9 +119,10 @@ export default function QRCodePrinting() {
         <div className="header-actions">
           {/* Add number input for copies */}
           <div className="copies-selector">
-            <label htmlFor="numCopies">Copies:</label>
+            <label className="copies-label" htmlFor="numCopies">Copies:</label>
             <input
               type="number"
+              className="copy-input"
               id="numCopies"
               name="numCopies"
               min="1"

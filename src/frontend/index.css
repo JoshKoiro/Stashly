@@ -613,7 +613,7 @@ button.delete-image-btn {
 }
 
 .print-btn {
-  background-color: var(--success);
+  background-color: var(--primary);
   color: var(--off-white);
   border: none;
   padding: 0.75rem 1.5rem;
@@ -627,7 +627,7 @@ button.delete-image-btn {
 }
 
 .print-btn:hover:not(:disabled) {
-  background-color: #3cb4d3;
+  background-color: var(--primary-light);
 }
 
 .print-btn:disabled {
@@ -892,7 +892,7 @@ tbody tr:hover {
   color: var(--text-color);
 }
 
-.form-group input, .form-group textarea {
+.form-group input, .form-group textarea, .copy-input {
   background-color: var(--input-background);
   color: var(--text-color-slightly-muted);
   width: 100%;

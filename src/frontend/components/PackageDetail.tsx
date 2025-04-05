@@ -435,7 +435,7 @@ export default function PackageDetail() {
                       checked={!!image.is_primary}
                       onChange={() => handleSetPrimaryImage(image.id)}
                     />
-                    <i className="fas fa-star"></i> {/* Styling handled in CSS */}
+                    <i className="fas fa-star" style={{ color: image.is_primary ? 'gold' : 'lightgray' }}></i>
                   </label>
                   {/* Delete Button */}
                   <button

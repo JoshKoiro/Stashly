@@ -461,6 +461,41 @@ main {
   color: var(--text-color);
 }
 
+button.delete-image-btn, .primary-image-toggle {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 5px 10px;
+  padding-bottom:12px;
+}
+
+.primary-image-toggle {
+  float:left;
+}
+
+.primary-image-toggle input {
+  display: none;
+}
+
+.primary-image-toggle i {
+  padding-left:5px;
+  margin-bottom: 2px;
+}
+
+button.delete-image-btn {
+  color: rgb(202, 72, 72);
+  float: right;
+  padding-right: 15px;
+}
+
+.delete-item-btn {
+  color: rgb(202, 72, 72);
+  outline:none;
+  border:none;
+  background:none;
+}
+
 .upload-form {
   background-color: var(--background-color);
   padding: 1.5rem;

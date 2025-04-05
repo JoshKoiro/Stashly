@@ -11,11 +11,13 @@
   --dark: #4d2a21;
   --gray: #4d2a21;
   --light-gray: #e9ecef;
+  --off-white: #f7fafc;
 
   /* Light Theme (Default) */
   --background-color: #f8f9fa;
   --text-color: #343a40;
-  --text-color-muted: #6c757d;
+  --text-color-slightly-muted: #545e66;
+  --text-color-muted: #8e99a3;
   --card-background: #ffffff;
   --border-color: #dee2e6;
   --input-background: #ffffff;
@@ -31,7 +33,8 @@ body.dark {
   /* Dark Theme */
   --background-color: #262626;
   --text-color: #e9ecef;
-  --text-color-muted: #adb5bd;
+  --text-color-slightly-muted: #cbd7e2;
+  --text-color-muted: #848b92;
   --card-background: #2c2c2c;
   --border-color: #495057;
   --input-background: #343a40;
@@ -112,7 +115,7 @@ header {
   border-radius: 50px;
   font-size: 16px;
   background-color: var(--input-background);
-  color: var(--text-color);
+  color: var(--text-color-slightly-muted);
 }
 
 .search-bar input::placeholder {
@@ -170,7 +173,7 @@ header {
 
 .user-actions .add-btn {
   background-color: var(--primary);
-  color: white;
+  color: var(--light-gray);
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -185,7 +188,7 @@ header {
 
 .user-actions .add-btn:hover {
   background-color: var(--primary-light);
-  color: white;
+  color: var(--off-white);
 }
 
 /* Navigation */
@@ -216,12 +219,12 @@ header {
 
 .nav-item:hover {
   background-color: var(--primary-light);
-  color: white;
+  color: var(--off-white);
 }
 
 .nav-item.active {
   background-color: var(--primary);
-  color: white;
+  color: var(--off-white);
 }
 
 /* Main content */
@@ -443,7 +446,7 @@ main {
 }
 
 .image-card {
-  background-color: white;
+  background-color: var(--background-color);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -484,13 +487,13 @@ button.delete-image-btn, .primary-image-toggle {
 }
 
 button.delete-image-btn {
-  color: rgb(202, 72, 72);
+  color: var(--danger);
   float: right;
   padding-right: 15px;
 }
 
 .delete-item-btn {
-  color: rgb(202, 72, 72);
+  color: var(--danger);
   outline:none;
   border:none;
   background:none;
@@ -522,7 +525,7 @@ button.delete-image-btn {
 
 .add-item-btn {
   background-color: var(--primary);
-  color: white;
+  color: var(--off-white);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
@@ -536,7 +539,7 @@ button.delete-image-btn {
 }
 
 .add-item-form {
-  background-color: white;
+  background-color: var(--off-white);
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -566,7 +569,7 @@ button.delete-image-btn {
 }
 
 .item-card {
-  background-color: white;
+  background-color: var(--off-white);
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -609,7 +612,7 @@ button.delete-image-btn {
 
 .print-btn {
   background-color: var(--success);
-  color: white;
+  color: var(--off-white);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
@@ -679,7 +682,7 @@ button.delete-image-btn {
 }
 
 .print-options {
-  background-color: white;
+  background-color: var(--off-white);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 20px;
@@ -854,7 +857,7 @@ tbody tr:hover {
 
 .create-package-btn {
   background-color: var(--primary);
-  color: white;
+  color: var(--off-white);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
@@ -868,7 +871,7 @@ tbody tr:hover {
 }
 
 .create-package-form {
-  background-color: white;
+  background-color: var(--off-white);
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -888,12 +891,34 @@ tbody tr:hover {
 }
 
 .form-group input, .form-group textarea {
+  background-color: var(--input-background);
+  color: var(--text-color-slightly-muted);
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--input-border-color);
   border-radius: 4px;
   font-size: 1rem;
   transition: border-color 0.2s;
+}
+
+.form-group input.file-btn::file-selector-button {
+  background-color: var(--primary);
+  color: var(--off-white);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  margin-right: 1rem;
+}
+
+.form-group input.file-btn {
+  cursor: pointer;
+}
+
+.form-group input.file-btn::file-selector-button:hover {
+  background-color: var(--primary-light);
 }
 
 .form-group input:focus {
@@ -918,7 +943,7 @@ tbody tr:hover {
 
 .submit-btn {
   background-color: var(--primary);
-  color: white;
+  color: var(--off-white);
 }
 
 .submit-btn:hover {
@@ -927,7 +952,7 @@ tbody tr:hover {
 
 .cancel-btn {
   background-color: var(--gray);
-  color: white;
+  color: var(--off-white);
 }
 
 .cancel-btn:hover {
@@ -946,6 +971,7 @@ tbody tr:hover {
 .items-table {
   width: 100%;
   border-collapse: collapse;
+  color: var(--text-color-slightly-muted);
 }
 
 .items-table th,
@@ -971,7 +997,7 @@ tbody tr:hover {
   color: var(--primary);
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 4px;
+  border-radius: 25px;
   transition: background-color 0.2s;
 }
 
@@ -982,7 +1008,7 @@ tbody tr:hover {
 /* Edit Forms */
 .edit-package-form,
 .edit-item-form {
-  background-color: white;
+  background-color: var(--background-color);
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -997,11 +1023,13 @@ tbody tr:hover {
 }
 
 .edit-btn {
-  background-color: var(--primary);
-  color: white;
+  background-color: var(--button-secondary-background);
+  color: var(--button-secondary-text);
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.5rem;
+  border-radius: 1.25rem;
+  width: 2.5rem;
+  height:2.5rem;
   cursor: pointer;
   font-size: 0.875rem;
   transition: background-color 0.2s;

@@ -1170,6 +1170,11 @@ tbody tr:hover {
     padding: 0.75rem;
   }
 
+  .package-list-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
   .package-header h3 {
     font-size: 1.1rem;
   }

@@ -291,7 +291,9 @@ app.get('/api/packages/:id/qr', async (req, res) => {
 // QR Code label PDF generation
 app.post('/api/qr-labels', async (req, res) => {
   try {
-    const { packageIds } = req.body;
+    const { packageIds, copies: requestedCopies } = req.body;
+    const copies = Math.max(1, parseInt(requestedCopies, 10) || 1); // Default to 1 copy
+
     if (!Array.isArray(packageIds) || packageIds.length === 0) {
       res.status(400).json({ error: 'Invalid package IDs' });
       return;
@@ -300,6 +302,17 @@ app.post('/api/qr-labels', async (req, res) => {
     const packages = await Promise.all(
       packageIds.map(id => db.getPackage(id))
     );
+
+    // Create a list of labels to print, duplicating packages based on 'copies'
+    const labelsToPrint = packages.flatMap(pkg =>
+      pkg ? Array(copies).fill(pkg) : [] // Repeat valid packages 'copies' times
+    );
+
+    if (labelsToPrint.length === 0) {
+      // Handle case where no valid packages were found or provided
+      res.status(400).json({ error: 'No valid packages found to generate labels.' });
+      return;
+    }
 
     const doc = new PDFDocument({
       size: 'LETTER',
@@ -331,12 +344,15 @@ app.post('/api/qr-labels', async (req, res) => {
     let currentPage = 0;
     doc.addPage(); // Start with the first page
 
-    for (let i = 0; i < packages.length; i++) {
-      const package_ = packages[i];
-      if (!package_) continue;
+    // Iterate through the potentially duplicated list of labels
+    for (let i = 0; i < labelsToPrint.length; i++) {
+      const package_ = labelsToPrint[i]; // Get the package data for the current label
+      // No need to check if package_ is null here as flatMap filtered them
 
-      const pageIndex = Math.floor(i / labelsPerPage);
-      const labelIndexOnPage = i % labelsPerPage;
+      // Calculate page and position based on the overall label index 'i'
+      const totalLabelsPerPage = labelsPerRow * labelsPerColumn;
+      const pageIndex = Math.floor(i / totalLabelsPerPage);
+      const labelIndexOnPage = i % totalLabelsPerPage;
       const row = Math.floor(labelIndexOnPage / labelsPerRow);
       const col = labelIndexOnPage % labelsPerRow;
 

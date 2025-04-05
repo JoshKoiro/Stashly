@@ -381,7 +381,7 @@ export default function PackageDetail() {
             style={{ marginLeft: 'auto' }} // Push edit button right
           >
              <i className={`fas ${showEditPackageForm ? 'fa-times' : 'fa-pencil-alt'}`}></i>
-            {showEditPackageForm ? ' Cancel' : ' Edit'}
+            {showEditPackageForm ? '' : ''}
           </button>
         </div>
       </div>
@@ -435,7 +435,7 @@ export default function PackageDetail() {
                       checked={!!image.is_primary}
                       onChange={() => handleSetPrimaryImage(image.id)}
                     />
-                    <i className="fas fa-star"></i> {/* Styling handled in CSS */}
+                    <i className="fas fa-star" style={{ color: image.is_primary ? 'gold' : 'var(--text-color-muted)' }}></i>
                   </label>
                   {/* Delete Button */}
                   <button
@@ -462,6 +462,7 @@ export default function PackageDetail() {
               <input
                 type="file"
                 id="image"
+                className="file-btn"
                 accept="image/*"
                 onChange={e => setSelectedImage(e.target.files?.[0] || null)}
               />

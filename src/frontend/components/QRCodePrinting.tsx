@@ -8,6 +8,7 @@ export default function QRCodePrinting() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [printing, setPrinting] = useState(false);
+  const [numCopies, setNumCopies] = useState(1);
 
   useEffect(() => {
     const fetchPackages = async () => {
@@ -46,9 +47,20 @@ export default function QRCodePrinting() {
   };
 
   const handlePrint = async () => {
-    if (selectedPackages.size === 0) {
-      alert('Please select at least one package');
-      return;
+    // Determine which packages to print
+    const packageIdsToPrint = selectedPackages.size > 0
+      ? Array.from(selectedPackages)
+      : packages.map(pkg => pkg.id); // Print all if none selected
+
+    if (packageIdsToPrint.length === 0 && packages.length > 0) {
+       // This case should ideally not be hit if packages exist,
+       // but adding a safeguard.
+       alert('No packages available to print.');
+       return;
+    } else if (packageIdsToPrint.length === 0) {
+       // Handles the case where fetch returned 0 packages initially.
+       alert('No packages found.');
+       return;
     }
 
     setPrinting(true);
@@ -59,7 +71,10 @@ export default function QRCodePrinting() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          packageIds: Array.from(selectedPackages),
+          // Use the determined list of package IDs
+          packageIds: packageIdsToPrint,
+          // Pass the number of copies
+          copies: numCopies,
         }),
       });
 
@@ -67,14 +82,9 @@ export default function QRCodePrinting() {
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      
-      // Open the PDF in a new tab instead of forcing download
+
       window.open(url, '_blank');
 
-      // Optional: Revoke the object URL after a delay or when the window closes
-      // Revoking immediately might prevent the PDF from loading in the new tab.
-      // For simplicity, we might omit immediate revocation here.
-      // window.URL.revokeObjectURL(url); 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to print QR codes');
     } finally {
@@ -85,22 +95,52 @@ export default function QRCodePrinting() {
   if (loading) return <div className="loading">Loading packages...</div>;
   if (error) return <div className="error">{error}</div>;
 
+  // Determine button label based on selection
+  const printButtonLabel = selectedPackages.size > 0
+    ? 'Print Selected QR Codes'
+    : 'Print All QR Codes';
+
   return (
     <div className="qr-printing">
+      {/* Move Back link to the left */}
+      <div className="page-header-controls">
+         <Link to="/" className="back-btn">
+            <i className="fas fa-arrow-left"></i>
+            Back to Packages
+         </Link>
+      </div>
+
+      {/* Restructured header */}
       <div className="section-header">
-        <h2>Print QR Codes</h2>
+        <div className="header-content">
+           {/* Heading moved next to the button */}
+           <h2>Print QR Codes</h2>
+        </div>
         <div className="header-actions">
+          {/* Add number input for copies */}
+          <div className="copies-selector">
+            <label className="copies-label" htmlFor="numCopies">Copies:</label>
+            <input
+              type="number"
+              className="copy-input"
+              id="numCopies"
+              name="numCopies"
+              min="1"
+              value={numCopies}
+              onChange={(e) => setNumCopies(Math.max(1, parseInt(e.target.value, 10) || 1))}
+              disabled={printing}
+              style={{ width: '60px', marginLeft: '5px', marginRight: '10px', padding: '5px' }}
+            />
+          </div>
           <button
             className="print-btn"
             onClick={handlePrint}
-            disabled={selectedPackages.size === 0 || printing}
+            // Button is disabled only when printing is in progress
+            disabled={printing}
           >
-            {printing ? 'Generating PDF...' : 'Print QR Codes'}
+            {printing ? 'Generating PDF...' : printButtonLabel}
           </button>
-          <Link to="/" className="back-btn">
-            <i className="fas fa-arrow-left"></i>
-            Back to Packages
-          </Link>
+          {/* Back link removed from here */}
         </div>
       </div>
 

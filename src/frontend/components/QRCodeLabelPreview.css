@@ -1,0 +1,151 @@
+/* Printable Area Styling */
+/* Use inches for precise print layout matching Avery 18160 */
+/* Paper: US Letter (8.5in x 11in) */
+/* Margins: Top/Bottom 0.5in, Left/Right ~0.1875in */
+/* Label Size: 2.625in x 1in */
+/* Grid: 3 across, 10 down */
+/* Horizontal Gutter: 0.125in */
+/* Vertical Gutter: 0in */
+
+.labels-container {
+    /* Screen centering */
+    /* margin: 1rem auto; */ 
+    width: 8.5in; 
+    display: grid;
+    grid-template-columns: repeat(3, 2.625in);
+    grid-template-rows: repeat(10, 1in);
+    column-gap: 0.125in;
+    row-gap: 0in;
+    background-color: white;
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */ /* REMOVED - only for screen */
+    /* justify-content: center; */ /* REMOVED - print version handles centering */
+    align-content: flex-start; 
+}
+
+.label-cell {
+    width: 2.625in;
+    height: 1in;
+    padding: 6pt; 
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    page-break-inside: avoid; /* Keep this to prevent individual labels from breaking */
+}
+
+.label-cell.placeholder {
+   background-color: transparent; 
+}
+
+.label-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.qr-code-container {
+    flex-shrink: 0;
+    width: 80px; 
+    height: 80px; 
+    margin-left: 6pt; 
+    margin-right: 8pt; 
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-code-container > svg {
+    /* Ensure SVG scales correctly */
+    display: block; 
+    width: 100%;
+    height: 100%;
+}
+
+.label-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    overflow: hidden; 
+    font-family: 'Helvetica', Arial, sans-serif; 
+}
+
+.label-id {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #000;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    margin-bottom: 2pt;
+    line-height: 1.1;
+}
+
+.label-location {
+    font-size: 10pt;
+    color: #333;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Styles for PDF generation clarity */
+@media print {
+    /* Reset body/html defaults */
+    body,
+    html {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: none !important;
+        width: 100%; /* Ensure html/body take full width */
+        height: auto; /* Allow natural height */
+        overflow: visible; /* Allow content to flow */
+    }
+
+    /* Hide elements marked specifically for hiding during print */
+    .print-hide {
+        display: none !important;
+    }
+
+    /* Style the labels container for normal flow within Puppeteer margins */
+    .labels-container {
+        width: 100% !important; /* Fill space between Puppeteer margins */
+        margin: 0 !important;      /* Reset margin */
+        padding: 0 !important;     /* Ensure no internal padding */
+        box-shadow: none !important;
+        border: none;
+        display: grid !important;
+        grid-template-columns: repeat(3, 2.625in) !important; 
+        column-gap: 0.125in !important; 
+        row-gap: 0in !important; 
+        grid-auto-rows: 1in;
+        background-color: #fff !important;
+        color: #000 !important;
+        justify-content: center; /* Center grid horizontally if container is wider */
+        align-content: start !important;   
+        page-break-inside: avoid; 
+        overflow: visible; 
+    }
+
+    .label-cell {
+         /* Ensure no background color bleeds */
+         background-color: transparent !important;
+         /* Ensure text color overrides work */
+         color: #000 !important;
+         page-break-inside: avoid !important; /* Reinforce avoid break */
+    }
+
+     .label-id,
+     .label-location {
+         color: #000 !important;
+     }
+
+     /* Ensure QR code SVG renders correctly */
+     .qr-code-container > svg {
+         display: block; /* Helps rendering */
+     }
+} 

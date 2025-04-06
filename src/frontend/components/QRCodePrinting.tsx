@@ -7,13 +7,13 @@ export default function QRCodePrinting() {
   const [selectedPackages, setSelectedPackages] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [printing, setPrinting] = useState(false);
   const [numCopies, setNumCopies] = useState(1);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const response = await fetch('/api/packages');
+        const response = await fetch('/api/packages?limit=1000');
         if (!response.ok) throw new Error('Failed to fetch packages');
         const data = await response.json();
 
@@ -46,63 +46,35 @@ export default function QRCodePrinting() {
     });
   };
 
-  const handlePrint = async () => {
-    // Determine which packages to print
+  const handleDownloadPdf = () => {
     const packageIdsToPrint = selectedPackages.size > 0
       ? Array.from(selectedPackages)
-      : packages.map(pkg => pkg.id); // Print all if none selected
+      : packages.map(pkg => pkg.id);
 
-    if (packageIdsToPrint.length === 0 && packages.length > 0) {
-       // This case should ideally not be hit if packages exist,
-       // but adding a safeguard.
-       alert('No packages available to print.');
-       return;
-    } else if (packageIdsToPrint.length === 0) {
-       // Handles the case where fetch returned 0 packages initially.
-       alert('No packages found.');
-       return;
+    if (packageIdsToPrint.length === 0) {
+      alert(packages.length > 0 ? 'Select packages or ensure packages exist to generate PDF.' : 'No packages found to generate PDF.');
+      return;
     }
 
-    setPrinting(true);
-    try {
-      const response = await fetch('/api/qr-labels', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          // Use the determined list of package IDs
-          packageIds: packageIdsToPrint,
-          // Pass the number of copies
-          copies: numCopies,
-        }),
-      });
+    const params = new URLSearchParams({
+      packageIds: packageIdsToPrint.join(','),
+      copies: numCopies.toString(),
+      offset: offset.toString(),
+    });
 
-      if (!response.ok) throw new Error('Failed to generate QR codes');
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      window.open(url, '_blank');
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to print QR codes');
-    } finally {
-      setPrinting(false);
-    }
+    // Open the PDF generation endpoint URL in a new tab
+    window.open(`/api/generate-qr-labels-pdf?${params.toString()}`, '_blank');
   };
 
   if (loading) return <div className="loading">Loading packages...</div>;
   if (error) return <div className="error">{error}</div>;
 
-  // Determine button label based on selection
-  const printButtonLabel = selectedPackages.size > 0
-    ? 'Print Selected QR Codes'
-    : 'Print All QR Codes';
+  const previewButtonLabel = selectedPackages.size > 0
+    ? 'Generate PDF with Selected Packages'
+    : 'Generate PDF with All Packages';
 
   return (
     <div className="qr-printing">
-      {/* Move Back link to the left */}
       <div className="page-header-controls">
          <Link to="/" className="back-btn">
             <i className="fas fa-arrow-left"></i>
@@ -110,14 +82,24 @@ export default function QRCodePrinting() {
          </Link>
       </div>
 
-      {/* Restructured header */}
       <div className="section-header">
         <div className="header-content">
-           {/* Heading moved next to the button */}
            <h2>Print QR Codes</h2>
         </div>
         <div className="header-actions">
-          {/* Add number input for copies */}
+          <div className="offset-selector">
+             <label className="offset-label" htmlFor="offset">Offset:</label>
+             <input
+                type="number"
+                className="offset-input"
+                id="offset"
+                name="offset"
+                min="0"
+                value={offset}
+                onChange={(e) => setOffset(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                style={{ width: '60px', marginLeft: '5px', marginRight: '10px', padding: '5px' }}
+             />
+          </div>
           <div className="copies-selector">
             <label className="copies-label" htmlFor="numCopies">Copies:</label>
             <input
@@ -128,19 +110,16 @@ export default function QRCodePrinting() {
               min="1"
               value={numCopies}
               onChange={(e) => setNumCopies(Math.max(1, parseInt(e.target.value, 10) || 1))}
-              disabled={printing}
               style={{ width: '60px', marginLeft: '5px', marginRight: '10px', padding: '5px' }}
             />
           </div>
           <button
             className="print-btn"
-            onClick={handlePrint}
-            // Button is disabled only when printing is in progress
-            disabled={printing}
+            onClick={handleDownloadPdf}
           >
-            {printing ? 'Generating PDF...' : printButtonLabel}
+             <i className="fas fa-file-pdf"></i>
+            {previewButtonLabel}
           </button>
-          {/* Back link removed from here */}
         </div>
       </div>
 

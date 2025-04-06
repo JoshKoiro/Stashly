@@ -41,7 +41,6 @@
     /* Screen centering */
     margin: 1rem auto; 
     width: 8.5in; 
-    height: 11in;
     display: grid;
     grid-template-columns: repeat(3, 2.625in);
     grid-template-rows: repeat(10, 1in);
@@ -49,11 +48,9 @@
     row-gap: 0in;
     background-color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    page-break-inside: avoid;
-    overflow: hidden;
     /* centers items both horizontally and vertically */
     justify-content: center;
-    align-content: center;
+    align-content: flex-start; /* Align items to the start vertically */
 }
 
 .label-cell {
@@ -65,7 +62,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    page-break-inside: avoid; 
+    page-break-inside: avoid; /* Keep this to prevent individual labels from breaking */
 }
 
 .label-cell.placeholder {
@@ -142,11 +139,7 @@
 
     /* Position the print root absolutely to take over the page */
     .print-root {
-        position: absolute;
-        left: 0;
-        top: 0;
         width: 100%; /* Occupy full print area */
-        height: 100%;
         padding: 0; /* Remove screen padding */
         margin: 0;
     }
@@ -156,27 +149,15 @@
         display: none !important; 
     }
 
-    /* Ensure the labels container is the only direct child visible */
-    /* (May not be needed if parent .print-root handles positioning) */
-    /* Redundant if .print-root positioning works */
-    /* .qr-label-preview-page > *:not(.labels-container) { display: none; } */
-
     /* Style the labels container for printing */
     .labels-container {
-        position: absolute; /* Position relative to the page margins */
-        top: 0; /* Aligns with top margin set in @page */
-        left: 0; /* Aligns with left margin set in @page */
         width: 8.125in !important; /* Exact printable width */
-        height: 10in !important; /* Exact printable height */
-        margin: 0 !important; /* Remove screen margin */
+        margin: 0 auto !important; /* Center horizontally */
         box-shadow: none !important; /* Remove screen shadow */
         border: none; /* Ensure no border */
-        /* Ensure background is white for printing */
         background-color: #fff !important;
-        /* Prevent breaking across pages if possible (browser dependent) */
-        page-break-inside: avoid !important;
-        /* Force black text for printing */
         color: #000 !important;
+        align-content: flex-start; /* Ensure grid items start from the top */
     }
 
     .label-cell {

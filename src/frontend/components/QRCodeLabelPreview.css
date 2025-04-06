@@ -126,38 +126,69 @@
 
 /* Styles for PDF generation clarity */
 @media print {
-    /* Hide everything initially */
+    /* Reset body/html defaults */
+    body,
+    html {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: none !important;
+        width: 100%; /* Ensure html/body take full width */
+        height: 100%; /* Ensure html/body take full height */
+        overflow: hidden; /* Prevent scrollbars on body/html */
+    }
+
+    /* Hide everything except the print root and its necessary children */
     body * {
         visibility: hidden;
     }
 
-    /* Make only the print root and its contents visible */
+    /* Make the print root and the labels container visible */
     .print-root,
-    .print-root * {
+    .labels-container,
+    .labels-container * {
         visibility: visible;
     }
 
-    /* Position the print root absolutely to take over the page */
+    /* Reset and position the print root */
     .print-root {
-        width: 100%; /* Occupy full print area */
-        padding: 0; /* Remove screen padding */
-        margin: 0;
+        position: absolute; /* Position relative to the page */
+        top: 0;
+        left: 0;
+        width: 100%; /* Take full page width */
+        height: 100%; /* Take full page height */
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        overflow: visible; /* Allow content to flow */
     }
 
     /* Hide elements marked specifically for hiding during print */
     .print-hide {
-        display: none !important; 
+        display: none !important;
     }
 
-    /* Style the labels container for printing */
+    /* Style and position the labels container absolutely within the print root */
     .labels-container {
-        width: 8.125in !important; /* Exact printable width */
-        margin: 0 auto !important; /* Center horizontally */
-        box-shadow: none !important; /* Remove screen shadow */
-        border: none; /* Ensure no border */
+        position: absolute; /* Position relative to print-root */
+        top: 0.5in;         /* Align below the top @page margin */
+        left: 0.1875in;     /* Align right of the left @page margin */
+        width: 8.125in !important; /* Exact printable width (8.5 - 2*0.1875) */
+        margin: 0 !important;      /* Reset margin (absolute positioning handles placement) */
+        padding: 0 !important;     /* Ensure no internal padding */
+        box-shadow: none !important;
+        border: none;
+        display: grid !important;
+        grid-template-columns: repeat(3, 2.625in) !important; /* Added !important */
+        column-gap: 0.125in !important; /* Added !important */
+        row-gap: 0in !important; /* Added !important */
+        grid-template-rows: none;
+        grid-auto-rows: 1in;
         background-color: #fff !important;
         color: #000 !important;
-        align-content: flex-start; /* Ensure grid items start from the top */
+        justify-content: start !important; /* Keep for grid item alignment */
+        align-content: start !important;   /* Keep for grid item alignment */
+        page-break-inside: avoid; /* Prevent container break */
+        overflow: visible; /* Allow content to overflow to next page */
     }
 
     .label-cell {
@@ -165,6 +196,7 @@
          background-color: transparent !important;
          /* Ensure text color overrides work */
          color: #000 !important;
+         page-break-inside: avoid !important; /* Reinforce avoid break */
     }
 
      .label-id,

@@ -62,7 +62,8 @@ export default function QRCodePrinting() {
       offset: offset.toString(),
     });
 
-    window.location.href = `/api/generate-qr-labels-pdf?${params.toString()}`;
+    // Open the PDF generation endpoint URL in a new tab
+    window.open(`/api/generate-qr-labels-pdf?${params.toString()}`, '_blank');
   };
 
   if (loading) return <div className="loading">Loading packages...</div>;

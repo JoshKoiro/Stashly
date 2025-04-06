@@ -7,6 +7,7 @@ import QRCode from 'qrcode';
 import fs from 'fs';
 import puppeteer from 'puppeteer';
 import { Package } from './schema';
+import { baseQrCodeOptions } from '../shared/qrCodeOptions';
 
 const app = express();
 // Ensure port is a number
@@ -473,6 +474,19 @@ app.get('/api/generate-qr-labels-pdf', async (req, res) => {
       `;
     }).join('');
 
+    // Convert the base options object to a JSON string to inject into the script
+    // We only need the styling-related parts, not width/height/data which are set per-label
+    const stylingOptionsJson = JSON.stringify({
+        type: baseQrCodeOptions.type,
+        margin: baseQrCodeOptions.margin,
+        imageOptions: baseQrCodeOptions.imageOptions,
+        qrOptions: baseQrCodeOptions.qrOptions,
+        dotsOptions: baseQrCodeOptions.dotsOptions,
+        cornersSquareOptions: baseQrCodeOptions.cornersSquareOptions,
+        cornersDotOptions: baseQrCodeOptions.cornersDotOptions,
+        backgroundOptions: baseQrCodeOptions.backgroundOptions,
+    });
+
     const htmlString = `
       <!DOCTYPE html>
       <html>
@@ -524,27 +538,25 @@ app.get('/api/generate-qr-labels-pdf', async (req, res) => {
           </div>
 
           <script>
-              // Inline script to generate QR codes after page load
               document.addEventListener('DOMContentLoaded', () => {
                   const placeholders = document.querySelectorAll('.qr-code-placeholder');
+                  // Parse the shared styling options from the injected JSON string
+                  const sharedStylingOptions = ${stylingOptionsJson};
+
                   placeholders.forEach(placeholder => {
                       const url = placeholder.getAttribute('data-url');
                       if (url) {
                            const qrCodeInstance = new QRCodeStyling({
-                              type: 'svg', // KEEP SVG for vector quality
-                              width: 80, height: 80, data: url, margin: 0,
-                              // Match frontend options exactly
-                              imageOptions: { hideBackgroundDots: true, imageSize: 0.7 },
-                              qrOptions: { errorCorrectionLevel: 'M' },
-                              dotsOptions: { color: "#000000", type: "extra-rounded" },
-                              cornersSquareOptions: { color: "#000000", type: "extra-rounded" },
-                              cornersDotOptions: { color: "#000000", type: "extra-rounded" },
-                              backgroundOptions: { color: "transparent" },
-                          });
-                          qrCodeInstance.append(placeholder);
+                                // Spread the shared styling options
+                                ...sharedStylingOptions,
+                                // Override with per-label data and standard dimensions
+                                width: 80,
+                                height: 80,
+                                data: url,
+                           });
+                           qrCodeInstance.append(placeholder);
                       }
                   });
-                  // Add a flag to signal completion (optional, for waitForFunction)
                   document.body.setAttribute('data-qr-codes-rendered', 'true');
               });
           </script>

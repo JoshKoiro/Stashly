@@ -1,5 +1,3 @@
-/* src/frontend/components/QRCodeLabelPreview.css */
-
 .qr-label-preview-page {
     padding: 1rem;
     background-color: var(--background-color); /* Match app background */
@@ -11,7 +9,7 @@
     align-items: center;
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background-color: var(--off-white); /* Card background */
+    background-color: var(--card-background);
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
@@ -49,7 +47,7 @@
     grid-template-rows: repeat(10, 1in);
     column-gap: 0.125in;
     row-gap: 0in;
-    background-color: #fff;
+    background-color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     page-break-inside: avoid;
     overflow: hidden;

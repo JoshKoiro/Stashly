@@ -134,13 +134,18 @@ export default function QRCodeLabelPreview() {
                 {labelsToRender.map((label, index) => {
                     const url = `${previewData.baseUrl}/packages/${label.id}`;
                     const qrOptions: QRCodeStylingOptions = {
-                         type: 'svg', // KEEP SVG for best print quality
+                        type: 'svg', // KEEP SVG for best print quality
                         width: 80, height: 80, data: url, margin: 0,
+                        // image: '/logo.png',
+                        imageOptions: {
+                            hideBackgroundDots: true,
+                            imageSize: 0.7
+                        },
                         qrOptions: { errorCorrectionLevel: 'M' },
-                        dotsOptions: { color: "#000080", type: "rounded" as DotType },
-                        cornersSquareOptions: { color: "#000080", type: "extra-rounded" as CornerSquareType },
-                        cornersDotOptions: { color: "#000080", type: "dot" as CornerDotType },
-                        backgroundOptions: { color: "#ffffff" },
+                        dotsOptions: { color: "#000000", roundSize: true, type: "extra-rounded" as DotType },
+                        cornersSquareOptions: { color: "#000000", type: "extra-rounded" as CornerSquareType },
+                        cornersDotOptions: { color: "#000000", type: "extra-rounded" as CornerDotType },
+                        backgroundOptions: { color: "transparent" },
                     };
                     return (
                         <div key={`${label.id}-${index}`} className="label-cell">

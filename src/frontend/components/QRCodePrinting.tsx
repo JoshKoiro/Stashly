@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Package } from '../../backend/db/schema';
 
 export default function QRCodePrinting() {
@@ -9,8 +9,6 @@ export default function QRCodePrinting() {
   const [error, setError] = useState<string | null>(null);
   const [numCopies, setNumCopies] = useState(1);
   const [offset, setOffset] = useState(0);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPackages = async () => {
@@ -48,13 +46,13 @@ export default function QRCodePrinting() {
     });
   };
 
-  const handlePreview = () => {
+  const handleDownloadPdf = () => {
     const packageIdsToPrint = selectedPackages.size > 0
       ? Array.from(selectedPackages)
       : packages.map(pkg => pkg.id);
 
     if (packageIdsToPrint.length === 0) {
-      alert(packages.length > 0 ? 'No packages available to print.' : 'No packages found.');
+      alert(packages.length > 0 ? 'Select packages or ensure packages exist to generate PDF.' : 'No packages found to generate PDF.');
       return;
     }
 
@@ -64,15 +62,15 @@ export default function QRCodePrinting() {
       offset: offset.toString(),
     });
 
-    navigate(`/qr-label-preview?${params.toString()}`);
+    window.location.href = `/api/generate-qr-labels-pdf?${params.toString()}`;
   };
 
   if (loading) return <div className="loading">Loading packages...</div>;
   if (error) return <div className="error">{error}</div>;
 
   const previewButtonLabel = selectedPackages.size > 0
-    ? 'Preview Selected Labels'
-    : 'Preview All Labels';
+    ? 'Generate PDF with Selected Packages'
+    : 'Generate PDF with All Packages';
 
   return (
     <div className="qr-printing">
@@ -116,9 +114,9 @@ export default function QRCodePrinting() {
           </div>
           <button
             className="print-btn"
-            onClick={handlePreview}
+            onClick={handleDownloadPdf}
           >
-             <i className="fas fa-eye"></i>
+             <i className="fas fa-file-pdf"></i>
             {previewButtonLabel}
           </button>
         </div>

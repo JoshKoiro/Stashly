@@ -1,33 +1,3 @@
-.qr-label-preview-page {
-    padding: 1rem;
-    background-color: var(--background-color); /* Match app background */
-}
-
-.preview-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background-color: var(--card-background);
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.preview-controls h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: var(--text-color);
-}
-
-.preview-controls .back-btn,
-.preview-controls .print-btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-    text-decoration: none; /* For back link */
-}
-
-
 /* Printable Area Styling */
 /* Use inches for precise print layout matching Avery 18160 */
 /* Paper: US Letter (8.5in x 11in) */
@@ -39,7 +9,7 @@
 
 .labels-container {
     /* Screen centering */
-    margin: 1rem auto; 
+    /* margin: 1rem auto; */ 
     width: 8.5in; 
     display: grid;
     grid-template-columns: repeat(3, 2.625in);
@@ -47,10 +17,9 @@
     column-gap: 0.125in;
     row-gap: 0in;
     background-color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    /* centers items both horizontally and vertically */
-    justify-content: center;
-    align-content: flex-start; /* Align items to the start vertically */
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */ /* REMOVED - only for screen */
+    /* justify-content: center; */ /* REMOVED - print version handles centering */
+    align-content: flex-start; 
 }
 
 .label-cell {

@@ -2,8 +2,8 @@ export interface Package {
   id: string;
   display_id: string;
   location: string;
-  created_at: string;
-  updated_at: string;
+  created: string;
+  updated: string;
   items?: Item[];
   images?: Image[];
 }

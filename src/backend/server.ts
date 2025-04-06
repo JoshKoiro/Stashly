@@ -4,8 +4,9 @@ import multer from 'multer';
 import path from 'path';
 import { Database } from './db/index';
 import QRCode from 'qrcode';
-import PDFDocument from 'pdfkit';
 import fs from 'fs';
+import puppeteer from 'puppeteer';
+import { Package } from './schema';
 
 const app = express();
 // Ensure port is a number
@@ -388,8 +389,253 @@ app.delete('/api/packages/:packageId/primary-image', async (req, res) => {
   }
 });
 
+// --- ADDED: PDF Generation Endpoint ---
+app.get('/api/generate-qr-labels-pdf', async (req, res) => {
+  console.info('[/api/generate-qr-labels-pdf] Received request'); // Log start
+  const { packageIds: packageIdsStr, copies: copiesStr, offset: offsetStr } = req.query;
+
+  // 1. Validate Input
+  if (!packageIdsStr || typeof packageIdsStr !== 'string') {
+    return res.status(400).json({ error: 'Missing or invalid packageIds query parameter.' });
+  }
+  const packageIds = packageIdsStr.split(',');
+  if (packageIds.length === 0) {
+    return res.status(400).json({ error: 'No package IDs provided.' });
+  }
+
+  const copies = parseInt(copiesStr as string || '1', 10);
+  const offset = parseInt(offsetStr as string || '0', 10);
+  if (isNaN(copies) || copies < 1 || isNaN(offset) || offset < 0) {
+    return res.status(400).json({ error: 'Invalid copies or offset parameter.' });
+  }
+
+  let browser = null; // Define browser outside try block for finally cleanup
+  try {
+    console.info('Fetching package data...');
+    // 2. Fetch Package Data
+    const packages = [];
+    for (const id of packageIds) {
+      const pkg = await db.getPackage(id);
+      if (pkg) {
+        packages.push(pkg);
+      } else {
+        console.warn(`Package with ID ${id} not found, skipping.`);
+        // Optionally return an error if any ID is not found:
+        // return res.status(404).json({ error: `Package with ID ${id} not found.` });
+      }
+    }
+    console.info(`Fetched ${packages.length} valid packages.`);
+
+    if (packages.length === 0) {
+        console.warn('No valid packages found, sending 404.');
+        return res.status(404).json({ error: 'No valid packages found for the provided IDs.' });
+    }
+
+    // 3. Prepare Labels Data
+    const labelsToRender: Package[] = [];
+    packages.forEach(pkg => {
+      for (let i = 0; i < copies; i++) {
+        labelsToRender.push({ ...pkg }); // Add copies
+      }
+    });
+
+    console.info('Reading CSS...');
+    // 4. Read CSS File Content
+    const cssPath = path.join(baseDir, 'src', 'frontend', 'components', 'QRCodeLabelPreview.css');
+    let cssContent = '';
+    try {
+        cssContent = fs.readFileSync(cssPath, 'utf-8');
+    } catch (err) {
+        console.error("Error reading CSS file:", err);
+        return res.status(500).json({ error: 'Could not load label styles.' });
+    }
+    console.info('CSS read successfully.');
+
+    console.info('Generating HTML string...');
+    // 5. Generate HTML Content
+    const baseUrl = `${req.protocol}://${req.get('host')}`; // Get base URL for QR codes
+    const offsetPlaceholders = Array(offset % 30).fill(null).map((_, i) =>
+      `<div key="offset-${i}" class="label-cell placeholder"></div>`
+    ).join('');
+
+    const labelCellsHtml = labelsToRender.map((label, index) => {
+      const url = `${baseUrl}/packages/${label.id}`; // Construct URL for QR code data
+      return `
+        <div key="${label.id}-${index}" class="label-cell">
+          <div class="label-content">
+            <div class="qr-code-placeholder" data-url="${url}"></div>
+            <div class="label-text">
+              <div class="label-id">${label.display_id}</div>
+              <div class="label-location">${label.location || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const htmlString = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta charset="UTF-8">
+          <title>QR Labels</title>
+          <style>
+              /* Inject CSS content here */
+              ${cssContent}
+
+              /* --- Moved Aggressive Reset Below --- */
+
+              /* Ensure placeholders are sized correctly AND have NO top margin/padding */
+              .label-cell.placeholder {
+                 width: 2.625in;
+                 height: 1in;
+                 box-sizing: border-box;
+                 margin-top: 0 !important;
+                 padding-top: 0 !important;
+                 /* background-color: #eee; */ /* Optional: for debugging */
+              }
+              /* Ensure QR placeholder has definite size for library */
+               .qr-code-placeholder {
+                   width: 80px; /* Match frontend */
+                   height: 80px; /* Match frontend */
+                   margin-left: 6pt;
+                   margin-right: 8pt;
+                   flex-shrink: 0;
+                   display: flex;
+                   align-items: center;
+                   justify-content: center;
+               }
+
+               /* --- AGGRESSIVE RESET for Print PDF (MOVED TO END) --- */
+               body, html, .labels-container {
+                   margin-top: 0 !important;
+                   padding-top: 0 !important;
+               }
+               /* --- End Aggressive Reset --- */
+
+          </style>
+          <!-- Include qr-code-styling library from CDN -->
+           <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0/lib/qr-code-styling.js"></script>
+      </head>
+      <body>
+          <div class="labels-container printable-area">
+              ${offsetPlaceholders}
+              ${labelCellsHtml}
+          </div>
+
+          <script>
+              // Inline script to generate QR codes after page load
+              document.addEventListener('DOMContentLoaded', () => {
+                  const placeholders = document.querySelectorAll('.qr-code-placeholder');
+                  placeholders.forEach(placeholder => {
+                      const url = placeholder.getAttribute('data-url');
+                      if (url) {
+                           const qrCodeInstance = new QRCodeStyling({
+                              type: 'svg', // KEEP SVG for vector quality
+                              width: 80, height: 80, data: url, margin: 0,
+                              // Match frontend options exactly
+                              imageOptions: { hideBackgroundDots: true, imageSize: 0.7 },
+                              qrOptions: { errorCorrectionLevel: 'M' },
+                              dotsOptions: { color: "#000000", type: "extra-rounded" },
+                              cornersSquareOptions: { color: "#000000", type: "extra-rounded" },
+                              cornersDotOptions: { color: "#000000", type: "extra-rounded" },
+                              backgroundOptions: { color: "transparent" },
+                          });
+                          qrCodeInstance.append(placeholder);
+                      }
+                  });
+                  // Add a flag to signal completion (optional, for waitForFunction)
+                  document.body.setAttribute('data-qr-codes-rendered', 'true');
+              });
+          </script>
+      </body>
+      </html>
+    `;
+    console.info('HTML string generated.');
+
+    console.info('Launching Puppeteer...');
+    // 6. Launch Puppeteer and Generate PDF
+    browser = await puppeteer.launch({
+       headless: true, // Use new headless mode
+       args: ['--no-sandbox', '--disable-setuid-sandbox'], // Common args for server environments
+       executablePath: puppeteer.executablePath(), // ADDED: Explicitly set executable path
+    });
+    console.info('Puppeteer launched.');
+    const page = await browser.newPage();
+    console.info('Puppeteer page created.');
+
+    // Emulate print media type *before* setting content
+    await page.emulateMediaType('print');
+
+    console.info('Setting page content...');
+    await page.setContent(htmlString, { waitUntil: 'networkidle0' }); // Wait until network is idle
+    console.info('Page content set.');
+
+    // Optional: Wait specifically for QR codes to be rendered by our script
+    console.info('Waiting for QR code SVGs to render...');
+    try {
+      await page.waitForSelector('.qr-code-placeholder svg', { timeout: 15000 }); // Wait for SVGs to appear
+      console.info('QR code SVGs rendered.');
+    } catch (waitError) {
+        console.error("Timeout or error waiting for QR codes to render:", waitError);
+        // Decide if you want to proceed anyway or return an error
+        // return res.status(500).json({ error: 'Failed to render QR codes in time.' });
+    }
+
+    console.info('Generating PDF buffer...');
+    let pdfBuffer: Buffer | null = null; // Initialize as null
+    try {
+        const pdfUint8Array = await page.pdf({
+          format: 'Letter',
+          printBackground: true, // Important for styles
+          margin: {
+            top: '0.5in',
+            right: '0.1875in',
+            bottom: '0.0in', // No bottom margin needed unless labels go right to the edge
+            left: '0.1875in'
+          },
+          preferCSSPageSize: false // Use format/margin options above
+        });
+        // Convert Uint8Array to Buffer
+        pdfBuffer = Buffer.from(pdfUint8Array);
+        console.info(`PDF buffer generated. Size: ${pdfBuffer?.length || 0} bytes.`);
+    } catch(pdfError) {
+        console.error('Error occurred specifically during page.pdf():', pdfError);
+        // Ensure browser is closed even if pdf generation fails
+        if (browser) { await browser.close(); browser = null; }
+        return res.status(500).json({ error: 'Failed during PDF generation step.' });
+    }
+
+    // Check if buffer is valid
+    if (!pdfBuffer || pdfBuffer.length === 0) {
+        console.error('PDF buffer is empty or invalid after generation.');
+        if (browser) { await browser.close(); browser = null; }
+        return res.status(500).json({ error: 'Generated PDF buffer was empty.' });
+    }
+
+    // 7. Send PDF Response
+    console.info('Setting PDF headers and sending response...');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="qr-labels.pdf"'); // Display inline
+    res.send(pdfBuffer);
+    console.info('PDF response sent.');
+
+  } catch (error) {
+    console.error('Error generating PDF (outer catch block):', error);
+    res.status(500).json({ error: 'Failed to generate PDF labels.' });
+  } finally {
+    // 8. Ensure Browser is Closed
+    if (browser) {
+      console.info('Closing Puppeteer browser...');
+      await browser.close();
+      console.info('Puppeteer browser closed.');
+    }
+  }
+});
+// --- END: PDF Generation Endpoint ---
+
 // Start server
 const host = isProduction ? '0.0.0.0' : 'localhost';
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);
-}); 
+});

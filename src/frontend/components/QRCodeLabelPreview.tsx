@@ -99,11 +99,22 @@ export default function QRCodeLabelPreview() {
         fetchPreviewData();
     }, [packageIds, copies, offset]);
 
-    // --- Renamed handler, now calls window.print() --- 
-    const handlePrint = useCallback(() => {
-        // No complex logic needed, just trigger browser print
-        window.print();
-    }, []); // No dependencies needed now
+    // --- Handler for generating PDF --- 
+    const handleGeneratePdf = () => {
+        if (!packageIds) {
+            console.error("Cannot generate PDF without package IDs.");
+            setError("Cannot generate PDF without package IDs.");
+            return;
+        }
+        const params = new URLSearchParams({
+            packageIds: packageIds, // packageIds is already a string from searchParams.get()
+            copies: copies,      // copies is already a string
+            offset: offset,      // offset is already a string
+        });
+        // Navigate to the backend endpoint
+        window.location.href = `/api/generate-qr-labels-pdf?${params.toString()}`;
+    };
+    // --- End Handler ---
 
     if (loading) return <div className="loading">Loading label preview...</div>;
     if (error) return <div className="error">Error: {error} <Link to="/print-qr">Go Back</Link></div>;
@@ -121,8 +132,9 @@ export default function QRCodeLabelPreview() {
                  </Link>
                 <h1>QR Label Preview</h1>
                 {/* Update button text and action */}
-                <button onClick={handlePrint} className="print-btn">
-                    <i className="fas fa-print"></i> Print Labels
+                <button onClick={handleGeneratePdf} className="print-btn">
+                    <i className="fas fa-file-pdf"></i>
+                    Download PDF
                 </button>
             </div>
 

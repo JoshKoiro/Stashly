@@ -133,32 +133,7 @@
         padding: 0 !important;
         background: none !important;
         width: 100%; /* Ensure html/body take full width */
-        height: 100%; /* Ensure html/body take full height */
-        overflow: hidden; /* Prevent scrollbars on body/html */
-    }
-
-    /* Hide everything except the print root and its necessary children */
-    body * {
-        visibility: hidden;
-    }
-
-    /* Make the print root and the labels container visible */
-    .print-root,
-    .labels-container,
-    .labels-container * {
-        visibility: visible;
-    }
-
-    /* Reset and position the print root */
-    .print-root {
-        position: absolute; /* Position relative to the page */
-        top: 0;
-        left: 0;
-        width: 100%; /* Take full page width */
-        height: 100%; /* Take full page height */
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
+        height: auto; /* Allow natural height */
         overflow: visible; /* Allow content to flow */
     }
 
@@ -167,28 +142,24 @@
         display: none !important;
     }
 
-    /* Style and position the labels container absolutely within the print root */
+    /* Style the labels container for normal flow within Puppeteer margins */
     .labels-container {
-        position: absolute; /* Position relative to print-root */
-        top: 0.5in;         /* Align below the top @page margin */
-        left: 0.1875in;     /* Align right of the left @page margin */
-        width: 8.125in !important; /* Exact printable width (8.5 - 2*0.1875) */
-        margin: 0 !important;      /* Reset margin (absolute positioning handles placement) */
+        width: 100% !important; /* Fill space between Puppeteer margins */
+        margin: 0 !important;      /* Reset margin */
         padding: 0 !important;     /* Ensure no internal padding */
         box-shadow: none !important;
         border: none;
         display: grid !important;
-        grid-template-columns: repeat(3, 2.625in) !important; /* Added !important */
-        column-gap: 0.125in !important; /* Added !important */
-        row-gap: 0in !important; /* Added !important */
-        grid-template-rows: none;
+        grid-template-columns: repeat(3, 2.625in) !important; 
+        column-gap: 0.125in !important; 
+        row-gap: 0in !important; 
         grid-auto-rows: 1in;
         background-color: #fff !important;
         color: #000 !important;
-        justify-content: start !important; /* Keep for grid item alignment */
-        align-content: start !important;   /* Keep for grid item alignment */
-        page-break-inside: avoid; /* Prevent container break */
-        overflow: visible; /* Allow content to overflow to next page */
+        justify-content: center; /* Center grid horizontally if container is wider */
+        align-content: start !important;   
+        page-break-inside: avoid; 
+        overflow: visible; 
     }
 
     .label-cell {
@@ -208,10 +179,4 @@
      .qr-code-container > svg {
          display: block; /* Helps rendering */
      }
-
-    /* Define the page margins and size */
-    @page {
-        size: letter portrait; /* 8.5in x 11in */
-        margin: 0.5in 0.1875in; /* Top/Bottom Left/Right for Avery 18160 */
-    }
 } 

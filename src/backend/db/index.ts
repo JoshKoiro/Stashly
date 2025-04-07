@@ -144,7 +144,70 @@ export class Database {
   }
 
   async deletePackage(id: string): Promise<void> {
-    await this.run('DELETE FROM packages WHERE id = ?', [id]);
+    // Wrap operations in a transaction
+    await promisify(this.db.exec.bind(this.db))('BEGIN TRANSACTION');
+
+    try {
+      // 1. Find items associated with the package
+      const items = await this.listItems(id);
+
+      // 2. For each item, find and delete its images (DB record + file)
+      for (const item of items) {
+        const itemImages = await this.listImages(undefined, item.id);
+        for (const image of itemImages) {
+          // Delete the image file first
+          try {
+            // Construct absolute path using projectRoot
+            const filePath = path.join(projectRoot, image.file_path);
+            await fs.promises.unlink(filePath);
+            console.log(`Deleted item image file: ${filePath}`);
+          } catch (unlinkError: any) {
+            if (unlinkError.code !== 'ENOENT') { // Don't error if file already gone
+              console.error(`Failed to delete item image file ${image.file_path}:`, unlinkError);
+              // Optionally throw or handle more gracefully depending on requirements
+            }
+          }
+          // Delete the image record from DB
+          await this.deleteImage(image.id); // Assumes deleteImage only removes DB record now
+        }
+      }
+
+      // 3. Delete items associated with the package
+      await this.run('DELETE FROM items WHERE package_id = ?', [id]);
+
+      // 4. Find and delete images associated directly with the package (DB record + file)
+      const packageImages = await this.listImages(id);
+      for (const image of packageImages) {
+         // Delete the image file first
+         try {
+           // Construct absolute path using projectRoot
+           const filePath = path.join(projectRoot, image.file_path);
+           await fs.promises.unlink(filePath);
+           console.log(`Deleted package image file: ${filePath}`);
+         } catch (unlinkError: any) {
+           if (unlinkError.code !== 'ENOENT') {
+             console.error(`Failed to delete package image file ${image.file_path}:`, unlinkError);
+             // Optionally throw or handle
+           }
+         }
+         // Delete the image record from DB
+         await this.deleteImage(image.id); // Assumes deleteImage only removes DB record now
+      }
+
+      // 5. Delete the package itself
+      await this.run('DELETE FROM packages WHERE id = ?', [id]);
+
+      // Commit the transaction
+      await promisify(this.db.exec.bind(this.db))('COMMIT');
+      console.log(`Successfully deleted package ${id} and associated data.`);
+
+    } catch (error) {
+      // Rollback transaction on error
+      await promisify(this.db.exec.bind(this.db))('ROLLBACK');
+      console.error(`Error deleting package ${id}:`, error);
+      // Re-throw the error to be caught by the calling function (in server.ts)
+      throw new Error(`Failed to delete package ${id}: ${error}`);
+    }
   }
 
   async getUniqueLocations(): Promise<string[]> {
@@ -258,6 +321,9 @@ export class Database {
   }
 
   async deleteImage(id: string): Promise<void> {
+    // Note: File deletion logic is removed from here and should be handled
+    // by the calling context (e.g., deletePackage or the API endpoint for direct image delete)
+    // to ensure atomicity within transactions or specific flows.
     await this.run('DELETE FROM images WHERE id = ?', [id]);
   }
 

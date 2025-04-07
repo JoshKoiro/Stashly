@@ -44,8 +44,8 @@
     color: white; /* Icon color */
     border: none;
     border-radius: 50%; /* Make it round */
-    width: 32px; /* Match typical icon button size */
-    height: 32px;
+    width: 2.5rem;
+    height: 2.5rem;
     display: inline-flex; /* Use flex for centering */
     align-items: center;
     justify-content: center;
@@ -165,6 +165,10 @@ body.dark .qr-code-container img {
 
 .primary-image-toggle input:checked + .fa-star {
     color: gold; /* Color when checked */
+}
+
+.fa-trash-alt, .fa-pencil-alt {
+    font-size: 0.85rem;
 }
 
 /* --- Item Delete Button --- */

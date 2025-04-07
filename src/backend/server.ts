@@ -578,8 +578,13 @@ app.get('/api/generate-qr-labels-pdf', async (req, res) => {
     // 6. Launch Puppeteer and Generate PDF
     browser = await puppeteer.launch({
        headless: true, // Use new headless mode
-       args: ['--no-sandbox', '--disable-setuid-sandbox'], // Common args for server environments
-       executablePath: puppeteer.executablePath(), // ADDED: Explicitly set executable path
+       args: [
+         '--no-sandbox',
+         '--disable-setuid-sandbox',
+         '--disable-dev-shm-usage',
+         '--disable-gpu'
+       ], // Common args for server environments
+       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(), // Use environment variable if set
     });
     console.info('Puppeteer launched.');
     const page = await browser.newPage();

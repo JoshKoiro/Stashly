@@ -11,6 +11,7 @@
     "copy-css": "mkdir -p dist/public/assets && cp src/frontend/components/QRCodeLabelPreview.css dist/public/assets/",
     "start": "cross-env NODE_ENV=production node dist/backend/server.js",
     "start-container": "node dist/backend/server.js",
+    "verify-puppeteer": "node verify-puppeteer.js",
     "yeet": "node node_modules/code-context-yeeter/yeetCode.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -32,7 +33,7 @@
     "jspdf": "^3.0.1",
     "multer": "^1.4.5-lts.1",
     "pdfkit": "^0.14.0",
-    "puppeteer": "^24.6.0",
+    "puppeteer": "^19.11.1",
     "qr-code-styling": "^1.9.1",
     "qrcode": "^1.5.4",
     "react-router-dom": "^7.4.1",

@@ -28,6 +28,22 @@ ENV NODE_ENV=production
 # Optional: Define the port, although the app reads it or defaults
 # ENV PORT=3000
 
+# Install dependencies required for Puppeteer in Alpine
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    nodejs \
+    yarn
+
+# Set environment variables for Puppeteer to use the installed Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 # Copy package files again
 COPY package.json package-lock.json ./
 
@@ -37,6 +53,10 @@ RUN npm ci --omit=dev
 # Copy the built application artifacts from the builder stage
 # This includes dist/backend and dist/public
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/verify-puppeteer.js ./verify-puppeteer.js
+
+# Verify Puppeteer is working correctly
+RUN node verify-puppeteer.js
 
 # Create directories for volumes if they don't exist (optional but safer)
 # The application code might create these, but being explicit is good practice

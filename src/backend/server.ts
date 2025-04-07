@@ -442,12 +442,21 @@ app.get('/api/generate-qr-labels-pdf', async (req, res) => {
 
     console.info('Reading CSS...');
     // 4. Read CSS File Content
-    const cssPath = path.join(baseDir, 'src', 'frontend', 'components', 'QRCodeLabelPreview.css');
+    let cssPath;
+    if (isProduction) {
+        // In production, look for the CSS file in the dist/public directory
+        cssPath = path.join(baseDir, 'dist', 'public', 'assets', 'QRCodeLabelPreview.css');
+    } else {
+        // In development, look for the CSS file in the source directory
+        cssPath = path.join(baseDir, 'src', 'frontend', 'components', 'QRCodeLabelPreview.css');
+    }
+    
     let cssContent = '';
     try {
         cssContent = fs.readFileSync(cssPath, 'utf-8');
     } catch (err) {
         console.error("Error reading CSS file:", err);
+        console.error("Attempted to read from path:", cssPath);
         return res.status(500).json({ error: 'Could not load label styles.' });
     }
     console.info('CSS read successfully.');
@@ -569,8 +578,13 @@ app.get('/api/generate-qr-labels-pdf', async (req, res) => {
     // 6. Launch Puppeteer and Generate PDF
     browser = await puppeteer.launch({
        headless: true, // Use new headless mode
-       args: ['--no-sandbox', '--disable-setuid-sandbox'], // Common args for server environments
-       executablePath: puppeteer.executablePath(), // ADDED: Explicitly set executable path
+       args: [
+         '--no-sandbox',
+         '--disable-setuid-sandbox',
+         '--disable-dev-shm-usage',
+         '--disable-gpu'
+       ], // Common args for server environments
+       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(), // Use environment variable if set
     });
     console.info('Puppeteer launched.');
     const page = await browser.newPage();

@@ -206,9 +206,6 @@ const PackageList: React.FC = () => {
               </div>
             </Link>
             <div className="package-actions">
-              <Link to={`/print-qr?package=${pkg.id}`} className="print-qr-btn">
-                Print QR Code
-              </Link>
             </div>
           </div>
         ))}

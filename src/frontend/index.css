@@ -354,37 +354,14 @@ main {
 
 .package-actions {
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
   margin-top: auto;
 }
 
-.print-qr-btn {
-  background-color: var(--button-secondary-background);
-  color: var(--button-secondary-text);
-  text-decoration: none;
-  padding: 0.3rem 0.8rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border-color);
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-}
-
-.print-qr-btn i {
-  margin-right: 5px;
-}
-
-.print-qr-btn:hover {
-  background-color: var(--hover-background-light);
-  border-color: var(--input-border-color);
-}
-
 /* Package detail */
 .package-detail {
-  padding: 2rem;
+  padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
   background-color: var(--card-background);
@@ -1191,13 +1168,8 @@ tbody tr:hover {
     padding: 0.75rem 1rem;
   }
 
-  .print-qr-btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-  }
-
   .package-detail {
-    padding: 1rem;
+    padding: 15px;
   }
 
   .package-header h1 {
@@ -1416,8 +1388,4 @@ tbody tr:hover {
 .cancel-btn {
   background-color: var(--gray);
   color: var(--off-white);
-}
-
-.cancel-btn:hover {
-  background-color: var(--primary-light);
 } 

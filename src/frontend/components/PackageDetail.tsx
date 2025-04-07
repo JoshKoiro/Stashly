@@ -3,6 +3,10 @@ import { Link, useParams } from 'react-router-dom';
 import { Package, Item, Image } from '../../backend/db/schema';
 import Modal from './Modal';
 import ItemForm from './ItemForm';
+import './QRCodeLabelPreview.css'; // <-- Import the label CSS
+import './PackageDetail.css'; // <-- Import the new CSS file
+import QRCodeStyling from 'qr-code-styling'; // <-- Import qr-code-styling
+import { baseQrCodeOptions } from '../../shared/qrCodeOptions'; // <-- Import shared options
 
 // Interface for the data structure used within the form
 interface ItemFormData {
@@ -14,27 +18,6 @@ interface ItemFormData {
   purchase_price?: number | undefined;
   purchase_date?: string;
 }
-
-// Define styles for the lightbox
-const lightboxStyles: { [key: string]: React.CSSProperties } = {
-  overlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000, // Ensure it's above other content
-  },
-  image: {
-    maxWidth: '90vw',
-    maxHeight: '90vh',
-    objectFit: 'contain', // Maintain aspect ratio
-  }
-};
 
 export default function PackageDetail() {
   const { id: packageId } = useParams<{ id: string }>(); // Rename id to avoid conflict
@@ -66,6 +49,7 @@ export default function PackageDetail() {
   const [uploading, setUploading] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [previewQrDataUrl, setPreviewQrDataUrl] = useState<string | null>(null); // <-- Add state for QR data URL
 
   useEffect(() => {
     const fetchPackageData = async () => {
@@ -88,6 +72,7 @@ export default function PackageDetail() {
         if (!imagesResponse.ok) throw new Error('Failed to fetch images');
         const imagesData = await imagesResponse.json();
         setImages(imagesData);
+
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch package data');
       } finally {
@@ -100,6 +85,67 @@ export default function PackageDetail() {
     }
 
   }, [packageId]);
+
+  // --- Updated useEffect for Client-Side QR Code Generation (Data URL Method) ---
+  useEffect(() => {
+    let isMounted = true; // Flag to prevent state update on unmounted component
+
+    const generateQrCodeDataUrl = async () => {
+      if (!package_) return;
+
+      const url = `${window.location.origin}/packages/${package_.id}`;
+
+      // Create QR code instance using shared options, overriding size for preview
+      const qrCodeInstance = new QRCodeStyling({
+          ...baseQrCodeOptions, // Spread the base options
+          width: 120, // Override width for preview
+          height: 120, // Override height for preview
+          data: url, // Set the specific data URL
+          // No need to repeat other options like type, dotsOptions, etc.
+      });
+
+      try {
+        // Get SVG data as Blob
+        const blob = await qrCodeInstance.getRawData('svg');
+        if (!blob) throw new Error('Failed to get QR code raw data.');
+
+        // Ensure we have a Blob before proceeding with FileReader
+        if (blob instanceof Blob) {
+            // Convert Blob to Data URL
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              if (isMounted) { // Check if component is still mounted
+                  setPreviewQrDataUrl(reader.result as string);
+              }
+            };
+            reader.onerror = (error) => {
+                console.error('FileReader error:', error);
+                 if (isMounted) {
+                    setPreviewQrDataUrl(null); // Clear on error
+                }
+            };
+            reader.readAsDataURL(blob); // Now we know blob is a Blob
+        } else {
+            // This case is unlikely in the browser with 'svg' but good to handle
+            throw new Error('QR code raw data was not in the expected Blob format.');
+        }
+
+      } catch (error) {
+        console.error('Error generating QR code data URL:', error);
+         if (isMounted) {
+             setPreviewQrDataUrl(null); // Clear on error
+         }
+      }
+    };
+
+    generateQrCodeDataUrl();
+
+    // Cleanup function
+    return () => {
+      isMounted = false; // Set flag on unmount
+      setPreviewQrDataUrl(null); // Clear QR code on cleanup
+    };
+  }, [package_]); // Re-run when package data changes
 
   // --- Modal Control Functions ---
   const openAddItemModal = () => {
@@ -353,13 +399,13 @@ export default function PackageDetail() {
   };
 
   if (loading) return <div className="loading">Loading...</div>;
-  if (error && !package_ && !isItemModalOpen) return <div className="error">{error}</div>;
+  if (error && !package_ && !isItemModalOpen) return <div className="error package-detail-error"><strong>Error:</strong> {error}</div>;
   if (!package_) return <div className="error">Package not found (ID: {packageId})</div>;
 
   return (
     <div className="package-detail">
       {error && !isItemModalOpen && (
-        <div className="error" style={{ marginBottom: '1rem', border: '1px solid var(--danger)', padding: '0.75rem', borderRadius: '4px', background: 'rgba(247, 37, 133, 0.1)' }}>
+        <div className="error package-detail-error">
           <strong>Error:</strong> {error}
         </div>
       )}
@@ -369,25 +415,23 @@ export default function PackageDetail() {
           <i className="fas fa-arrow-left"></i>
           Back to Packages
         </Link>
-        <div className="header-content" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="header-content package-header-content">
           <h1>{package_.display_id}</h1>
-           <span className="location-badge" style={{ marginTop: '0' }}>
+           <span className="location-badge location-badge-detail">
             <i className="fas fa-map-marker-alt"></i>
             {package_.location}
           </span>
           <button
-            className="edit-btn"
+            className="edit-btn edit-package-button"
             onClick={() => setShowEditPackageForm(!showEditPackageForm)}
-            style={{ marginLeft: 'auto' }} // Push edit button right
           >
              <i className={`fas ${showEditPackageForm ? 'fa-times' : 'fa-pencil-alt'}`}></i>
-            {showEditPackageForm ? '' : ''}
           </button>
         </div>
       </div>
 
       {showEditPackageForm && (
-        <form onSubmit={handleUpdatePackage} className="edit-package-form" style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+        <form onSubmit={handleUpdatePackage} className="edit-package-form edit-package-form-container">
           <div className="form-group">
             <label htmlFor="location">Location</label>
             <input
@@ -411,8 +455,7 @@ export default function PackageDetail() {
         </form>
       )}
 
-      {/* Info container for Images and Items sections */}
-      <div className="package-info" style={{ marginTop: '1.5rem' }}>
+      <div className="package-info package-info-container">
 
         {/* --- Images Section --- */}
         <div className="package-images">
@@ -420,24 +463,20 @@ export default function PackageDetail() {
           <div className="image-grid">
             {images.map(image => (
               <div key={image.id} className="image-card">
-                {/* Image clickable for lightbox */}
                 <img
                   src={`/${image.file_path}`}
                   alt={image.caption || `Package ${package_?.display_id || 'image'}`}
                   onClick={() => openLightbox(`/${image.file_path}`)}
                 />
-                {/* Container for controls */}
                 <div className="image-controls">
-                  {/* Primary Image Checkbox */}
                   <label title="Set as primary" className="primary-image-toggle">
                     <input
                       type="checkbox"
                       checked={!!image.is_primary}
                       onChange={() => handleSetPrimaryImage(image.id)}
                     />
-                    <i className="fas fa-star" style={{ color: image.is_primary ? 'gold' : 'var(--text-color-muted)' }}></i>
+                    <i className="fas fa-star"></i>
                   </label>
-                  {/* Delete Button */}
                   <button
                     className="delete-image-btn"
                     onClick={() => handleDeleteImage(image.id)}
@@ -456,21 +495,48 @@ export default function PackageDetail() {
             )}
           </div>
 
-          <form onSubmit={handleImageUpload} className="upload-form">
-            <div className="form-group">
-              <label htmlFor="image">Add New Image</label>
-              <input
-                type="file"
-                id="image"
-                className="file-btn"
-                accept="image/*"
-                onChange={e => setSelectedImage(e.target.files?.[0] || null)}
-              />
-            </div>
-            <button type="submit" disabled={!selectedImage || uploading} className="submit-btn">
-              {uploading ? 'Uploading...' : 'Upload Image'}
-            </button>
-          </form>
+          <div className="image-actions-container">
+              <form onSubmit={handleImageUpload} className="upload-form upload-image-form">
+                  <div className="form-group">
+                    <label htmlFor="image">Add New Image</label>
+                    <input
+                      type="file"
+                      id="image"
+                      className="file-btn"
+                      accept="image/*"
+                      onChange={e => setSelectedImage(e.target.files?.[0] || null)}
+                    />
+                  </div>
+                  <button type="submit" disabled={!selectedImage || uploading} className="submit-btn">
+                    {uploading ? 'Uploading...' : 'Upload Image'}
+                  </button>
+              </form>
+
+              {package_ && (
+                <div className="qr-code-preview-container">
+                  <div className="label-cell qr-code-preview-label-cell">
+                    <div className="label-content qr-code-preview-label-content">
+                      <div className="qr-code-container">
+                        {previewQrDataUrl ? (
+                          <img
+                            src={previewQrDataUrl}
+                            alt={`QR Code for Package ${package_.display_id}`}
+                            className="qr-code-preview-image"
+                          />
+                        ) : (
+                          <div className="qr-code-loading-placeholder">Loading...</div>
+                        )}
+                      </div>
+                      <div className="label-text">
+                        <div className="label-id">{package_.display_id}</div>
+                        <div className="label-location">{package_.location || 'N/A'}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+          </div>
+
         </div>
         {/* --- End Images Section --- */}
 
@@ -509,7 +575,7 @@ export default function PackageDetail() {
                     <td>{item.purchase_price != null ? `$${Number(item.purchase_price).toFixed(2)}` : '-'}</td>
                     <td>{item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : '-'}</td>
                     <td className="item-description-cell">{item.description || '-'}</td>
-                    <td onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center' }}> {/* Stop propagation for delete button click */}
+                    <td onClick={(e) => e.stopPropagation()} className="item-delete-cell">
                       <button
                         className="delete-item-btn"
                         onClick={() => handleDeleteItem(item.id)}
@@ -541,14 +607,12 @@ export default function PackageDetail() {
         onClose={closeItemModal}
         title={isEditingItem ? 'Edit Item' : 'Add New Item'}
       >
-          {/* Display error message inside modal */}
-         {error && isItemModalOpen && (
-              <div className="error" style={{ marginBottom: '1rem', border: '1px solid var(--danger)', padding: '0.75rem', borderRadius: '4px', background: 'rgba(247, 37, 133, 0.1)' }}>
+          {error && isItemModalOpen && (
+              <div className="error item-modal-error">
                  <strong>Error:</strong> {error}
              </div>
          )}
         <ItemForm
-          // Cast currentItemData to the expected Partial<ItemFormData> for the form
           initialData={currentItemData as Partial<ItemFormData>}
           onSubmit={isEditingItem ? handleUpdateItem : handleAddItem}
           onCancel={closeItemModal}
@@ -560,11 +624,11 @@ export default function PackageDetail() {
 
       {/* --- Lightbox --- */}
       {lightboxOpen && lightboxImage && (
-        <div style={lightboxStyles.overlay} onClick={closeLightbox}>
+        <div className="lightbox-overlay" onClick={closeLightbox}>
           <img
             src={lightboxImage}
             alt="Enlarged view"
-            style={lightboxStyles.image}
+            className="lightbox-image"
             onClick={(e) => e.stopPropagation()}
           />
         </div>

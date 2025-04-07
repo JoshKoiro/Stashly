@@ -1,0 +1,174 @@
+/* --- General Package Detail Styles --- */
+.package-detail {
+    /* Add any overall container styling if needed */
+}
+
+/* --- Error Message --- */
+.package-detail-error {
+    margin-bottom: 1rem;
+    border: 1px solid var(--danger);
+    padding: 0.75rem;
+    border-radius: 4px;
+    background: rgba(247, 37, 133, 0.1);
+}
+
+/* --- Package Header --- */
+.package-header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.location-badge-detail {
+    /* Inherits .location-badge styles from App.css */
+    /* Override specific details if needed, e.g., remove top margin */
+    margin-top: 0;
+}
+
+.edit-package-button {
+    /* Inherits .edit-btn styles */
+    margin-left: auto; /* Push button right */
+}
+
+/* --- Edit Package Form --- */
+.edit-package-form-container {
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+}
+
+/* --- Package Info Container --- */
+.package-info-container {
+    margin-top: 1.5rem;
+    /* Consider using grid or flexbox for layout if needed */
+}
+
+/* --- Images Section --- */
+.image-actions-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.upload-image-form {
+    flex: 1 1 auto; /* Allow shrinking/growing */
+}
+
+.qr-code-preview-container {
+    flex: 0 0 355px; /* Set flex-basis to match new width */
+    width: 355px; /* Calculated width based on aspect ratio */
+    height: 135px; /* Height to accommodate 120px QR + padding/text */
+    text-align: left;
+    /* margin-top: 1rem; */ /* Removed margin-top, already handled by gap in flex container */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex; /* Use flex to help center content vertically */
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    padding: 10px; /* Increased padding slightly */
+    box-sizing: border-box; /* Include padding in width/height */
+}
+
+/* Remove inline-block styling from label-cell as container is now flex */
+.qr-code-preview-label-cell {
+    width: 100%; /* Take full width inside flex container */
+    height: auto;
+    border: none;
+    padding: 0;
+    /* display: inline-block; */ /* Removed */
+}
+
+.qr-code-preview-label-content {
+    justify-content: center; /* Keep centering */
+    width: 100%;
+    display: flex; /* Ensure it's flex */
+    align-items: center; /* Align items vertically */
+    gap: 10px; /* Add gap between QR code and text */
+}
+
+/* Override size for the container holding the QR code image in the preview */
+.qr-code-preview-label-content .qr-code-container {
+    width: 120px;  /* Match the image size */
+    height: 120px; /* Match the image size */
+    margin: 0; /* Remove fixed margins from base style */
+    flex-shrink: 0; /* Prevent shrinking */
+    /* Inherit display:flex, align-items, justify-content */
+}
+
+.qr-code-preview-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-color-muted);
+    font-weight: normal;
+}
+
+.label-id, .label-location {
+    color: var(--text-color);
+}
+
+.qr-code-preview-image {
+    width: 120px;
+    height: 120px;
+    display: block;
+}
+
+body.dark .qr-code-container img {
+    filter: invert(1);
+}
+
+.qr-code-loading-placeholder {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eee;
+    font-size: 10px;
+    color: #888;
+}
+
+/* --- Primary Image Star --- */
+.primary-image-toggle .fa-star {
+    color: var(--text-color-muted); /* Default color */
+}
+
+.primary-image-toggle input:checked + .fa-star {
+    color: gold; /* Color when checked */
+}
+
+/* --- Item Delete Button --- */
+.item-delete-cell {
+    text-align: center;
+}
+
+/* --- Lightbox Styles --- */
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.lightbox-image {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+/* --- Item Modal Error Message --- */
+.item-modal-error {
+    margin-bottom: 1rem;
+    border: 1px solid var(--danger);
+    padding: 0.75rem;
+    border-radius: 4px;
+    background: rgba(247, 37, 133, 0.1);
+} 

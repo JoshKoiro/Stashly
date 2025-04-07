@@ -442,12 +442,21 @@ app.get('/api/generate-qr-labels-pdf', async (req, res) => {
 
     console.info('Reading CSS...');
     // 4. Read CSS File Content
-    const cssPath = path.join(baseDir, 'src', 'frontend', 'components', 'QRCodeLabelPreview.css');
+    let cssPath;
+    if (isProduction) {
+        // In production, look for the CSS file in the dist/public directory
+        cssPath = path.join(baseDir, 'dist', 'public', 'assets', 'QRCodeLabelPreview.css');
+    } else {
+        // In development, look for the CSS file in the source directory
+        cssPath = path.join(baseDir, 'src', 'frontend', 'components', 'QRCodeLabelPreview.css');
+    }
+    
     let cssContent = '';
     try {
         cssContent = fs.readFileSync(cssPath, 'utf-8');
     } catch (err) {
         console.error("Error reading CSS file:", err);
+        console.error("Attempted to read from path:", cssPath);
         return res.status(500).json({ error: 'Could not load label styles.' });
     }
     console.info('CSS read successfully.');

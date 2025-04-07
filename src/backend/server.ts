@@ -188,35 +188,87 @@ app.delete('/api/items/:id', async (req, res) => {
 });
 
 // Image routes
-app.post('/api/images', upload.single('image'), async (req, res) => {
+app.post('/api/images', upload.array('images', 10), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image file provided' });
+    // req.files is now an array of files
+    const files = req.files as Express.Multer.File[];
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'No image files provided' });
     }
 
-    // Store the relative path from the base directory
-    const relativeFilePath = path.relative(baseDir, req.file.path);
+    const packageId = req.body.package_id;
+    const itemId = req.body.item_id; // Optional: might be null if attaching to package directly
+    const caption = req.body.caption || ''; // Optional caption
 
-    const image = await db.createImage({
-      package_id: req.body.package_id,
-      item_id: req.body.item_id,
-      // Use the correct relative file path
-      file_path: relativeFilePath.replace(/\\/g, '/'), // Ensure forward slashes
-      caption: req.body.caption,
-      is_primary: req.body.is_primary === 'true',
-      display_order: parseInt(req.body.display_order || '0', 10)
-    });
+    // Need to handle potential missing packageId if required
+    if (!packageId && !itemId) {
+        // If files were uploaded, clean them up before erroring
+        for (const file of files) {
+            fs.unlink(file.path, (err) => {
+                if (err) console.error(`Error deleting orphaned upload (${file.filename}):`, err);
+            });
+        }
+      return res.status(400).json({ error: 'Missing package_id or item_id' });
+    }
 
-    res.status(201).json(image);
+    const createdImages = [];
+    let errorOccurred = false;
+
+    // Process each file sequentially to avoid race conditions maybe?
+    // Or use Promise.all for parallel processing if db constraints allow
+    for (const file of files) {
+      try {
+        // Store the relative path from the base directory
+        const relativeFilePath = path.relative(baseDir, file.path).replace(/\\/g, '/'); // Ensure forward slashes
+
+        // Determine if this image should be primary - logic might need refinement
+        // For now, let's assume the first image uploaded in a batch could be primary
+        // A better approach might be a separate flag from the client per image
+        const isPrimary = req.body.is_primary === 'true' && createdImages.length === 0; // Simplistic: only first can be primary? Or handle on client?
+        // Let's default display_order to 0 for now, client can update later if needed
+        const displayOrder = parseInt(req.body.display_order || '0', 10);
+
+        const image = await db.createImage({
+          package_id: packageId || null, // Handle case where only itemId is provided
+          item_id: itemId || null, // Handle case where only packageId is provided
+          file_path: relativeFilePath,
+          caption: caption, // Apply same caption to all? Or modify client to send array?
+          is_primary: isPrimary, // Revisit primary image logic
+          display_order: displayOrder // Revisit display order logic
+        });
+        createdImages.push(image);
+      } catch (loopError) {
+          console.error(`Error processing file ${file.filename}:`, loopError);
+          errorOccurred = true;
+          // Cleanup the file that failed to process
+          fs.unlink(file.path, (err) => {
+            if (err) console.error(`Error deleting upload after DB error (${file.filename}):`, err);
+          });
+          // Optionally break or continue processing others
+          // break; // Stop on first error
+      }
+    }
+
+    if (errorOccurred && createdImages.length === 0) {
+        // If errors occurred and no images were successfully created
+        return res.status(500).json({ error: 'Failed to create one or more images' });
+    }
+
+    // Respond with the array of created images (or partial success)
+    res.status(201).json(createdImages);
+
   } catch (error) {
-    console.error('Error creating image:', error);
-    // Cleanup uploaded file if DB insertion failed
-    if (req.file) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error('Error deleting orphaned upload:', err);
-      });
+    console.error('Error processing multiple image uploads:', error);
+    // Attempt to clean up any files uploaded in this request if an overarching error occurred
+    const files = req.files as Express.Multer.File[];
+    if (files && files.length > 0) {
+        files.forEach(file => {
+            fs.unlink(file.path, (err) => {
+                if (err) console.error(`Error deleting orphaned upload during cleanup (${file.filename}):`, err);
+            });
+        });
     }
-    res.status(500).json({ error: 'Failed to create image' });
+    res.status(500).json({ error: 'Failed to create images' });
   }
 });
 

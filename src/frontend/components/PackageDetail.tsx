@@ -45,7 +45,8 @@ export default function PackageDetail() {
   };
   // --- End Item Modal State ---
 
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  // Change state to handle multiple files
+  const [selectedImages, setSelectedImages] = useState<FileList | null>(null);
   const [uploading, setUploading] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -304,11 +305,15 @@ export default function PackageDetail() {
 
   const handleImageUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedImage || !packageId) return;
+    // Use selectedImages state
+    if (!selectedImages || selectedImages.length === 0 || !packageId) return;
     setError(null);
 
     const formData = new FormData();
-    formData.append('image', selectedImage);
+    // Append all selected files under the 'images' key
+    for (let i = 0; i < selectedImages.length; i++) {
+        formData.append('images', selectedImages[i]);
+    }
     formData.append('package_id', packageId);
 
     setUploading(true);
@@ -318,9 +323,10 @@ export default function PackageDetail() {
         body: formData
       });
       if (!response.ok) throw new Error('Failed to upload image');
-      const data = await response.json();
-      setImages(prev => [...prev, data]);
-      setSelectedImage(null); // Clear file input
+      const data = await response.json(); // Should be an array of images
+      // Append the array of new images to the existing state
+      setImages(prev => [...prev, ...data]);
+      setSelectedImages(null); // Clear file input state
       // Clear any potential error message related to file input
       const fileInput = document.getElementById('image') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
@@ -498,17 +504,18 @@ export default function PackageDetail() {
           <div className="image-actions-container">
               <form onSubmit={handleImageUpload} className="upload-form upload-image-form">
                   <div className="form-group">
-                    <label htmlFor="image">Add New Image</label>
+                    <label htmlFor="image">Add New Image(s)</label>
                     <input
                       type="file"
                       id="image"
                       className="file-btn"
                       accept="image/*"
-                      onChange={e => setSelectedImage(e.target.files?.[0] || null)}
+                      multiple
+                      onChange={e => setSelectedImages(e.target.files || null)}
                     />
                   </div>
-                  <button type="submit" disabled={!selectedImage || uploading} className="submit-btn">
-                    {uploading ? 'Uploading...' : 'Upload Image'}
+                  <button type="submit" disabled={!selectedImages || selectedImages.length === 0 || uploading} className="submit-btn">
+                    {uploading ? 'Uploading...' : 'Upload Images'}
                   </button>
               </form>
 

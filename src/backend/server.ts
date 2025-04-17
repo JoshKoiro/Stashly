@@ -47,10 +47,10 @@ if (isProduction) {
 
 // File upload configuration
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (_req, _file, cb) => {
     cb(null, uploadsDir); // Use the dynamically determined uploadsDir
   },
-  filename: (req, file, cb) => {
+  filename: (_req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
   }
@@ -397,7 +397,7 @@ app.get('/api/qr-labels-preview', async (req, res) => {
 });
 
 // New endpoint for fetching unique locations
-app.get('/api/locations', async (req, res) => {
+app.get('/api/locations', async (_req, res) => {
   try {
     const locations = await db.getUniqueLocations();
     res.json(locations || []);

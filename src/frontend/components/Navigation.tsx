@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Package } from '../../backend/db/schema';
 
 interface NavItem {
   id: string;

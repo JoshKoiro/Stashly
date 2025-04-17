@@ -1,4 +1,4 @@
-import QRCodeStyling, { Options } from 'qr-code-styling';
+import { Options } from 'qr-code-styling';
 
 // Define the base options for QR codes used for printing
 // We use the 80x80 size as the standard here.

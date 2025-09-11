@@ -10,9 +10,9 @@ services:
       # Map HOST_PORT (from .env, default 3000) to container port 3000
       - "${APP_PORT:-3000}:3000"
     volumes:
-      # Mount named volumes for persistent data
-      - stashly_data:/app/data
-      - stashly_uploads:/app/uploads
+      # Mount local directories for persistent data
+      - ../stashly-data/data:/app/data
+      - ../stashly-data/uploads:/app/uploads
     environment:
       # NODE_ENV is set in Dockerfile, but can be set here too if needed
       - NODE_ENV=production
@@ -21,8 +21,3 @@ services:
       # - SECRET_KEY=...
       - PORT=3000 # Explicitly set the port the app should use inside the container
     restart: unless-stopped # Restart policy
-
-# Define the named volumes
-volumes:
-  stashly_data: # Volume for the SQLite database
-  stashly_uploads: # Volume for user uploads
